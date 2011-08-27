@@ -156,7 +156,7 @@ socket.on('id',function(id){
       players[player.id].y = player.y;
     });
 
-    layers['players'].translate(players[myId].shape.position - oldPosition);
+    layers['players'].translate( oldPosition - players[myId].shape.position);
     /*var translate;
     var oldPosition;
     var newPosition;
