@@ -30,7 +30,7 @@ var removePlayer = function(player, socket) {
 
 io.sockets.on('connection', function(socket) {
 	socket.on('join', function(nickname) {
-		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy:0};
+		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy:-2};
 		player.nickname = nickname;
 		players.push(player);
 		socket.emit('id', player.id);

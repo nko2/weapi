@@ -93,15 +93,19 @@ function onFrame(event) {
   for (var i = 0; i < count; i++) {
     var item = layers['stars'].children[i];
     
-    item.position.y += item.bounds.height;
+    var vy = -1 * item.bounds.height;
+    var vx = 0;
     if(myId != -1){
-      item.position.x -= players[myId].vx;
-//      item.position.x += players[myId].shape.position.x
+      vy = players[myId].vy;
+      vx = players[myId].vx;
     }
+
+    item.position.x -= vx;
+    item.position.y -= vy;
     // If the item has left the view on the right, move it back
     // to the left:
     if (item.bounds.bottom > view.size.height) {
-      item.position.y = -item.bounds.height;
+      item.position.y = -1 * vy;
     }
   }
 }
@@ -157,6 +161,7 @@ socket.on('id',function(id){
       players[player.id].x = player.x;
       players[player.id].y = player.y;
       players[player.id].vx = player.vx;
+      players[player.id].vy = player.vy;
     });
 
     layers['players'].translate( oldPosition - players[myId].shape.position);
