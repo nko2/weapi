@@ -23,7 +23,7 @@ var objects = [];
 var players = [];
 var SPEED = 4;
 
-var removePlayer = function(player) {
+var removePlayer = function(player, socket) {
 	players.splice(players.indexOf(player), 1);
 	socket.broadcast.emit('leave', player.id);
 }
@@ -33,39 +33,39 @@ io.sockets.on('connection', function(socket) {
 		var	player = {id: Date.now() + Math.random(), x:405 , y:100, blood: 100};
 		player.nickname = nickname;
 		players.push(player);
-		socket.emit('players', players, player.id);
-		socket.broadcast.emit('player', player);
+		//socket.emit('players', players, player.id);
+		//socket.broadcast.emit('player', player);
 		socket.on('up', function() {
-			player.y += SPEED;
+			player.y -= SPEED;
 		});
 		socket.on('down', function() {
-			player.y -= SPEED;
+			player.y += SPEED;
 		});
 		socket.on('right', function() {
 			player.x += SPEED;
 			if (player.x < 0) {
-				removePlayer(player);
+				removePlayer(player, socket);
 			}
 		});
 		socket.on('left', function() {
 			player.x -= SPEED;
 			if (player.x > 809) {
-				removePlayer(player);
+				removePlayer(player, socket);
 			}
 		});
 		socket.on('fire', function() {
 			
 		});
 		socket.on('disconnect', function() {
-			removePlayer(player);
+			removePlayer(player, socket);
 		});
 	});
 });
 
 var frameInterval = setInterval(function() {
 	players.forEach(function(player) {
-		player.y += SPEED;
+		//player.y += SPEED;
 	});
 
-	io.sockets.emit('frame', players, objects);
+	io.sockets.volatile.emit('frame', players, objects);
 }, 34);

@@ -77,6 +77,27 @@ function onFrame(event) {
 }
 
 
+
+var players = {};
+
+socket.on('players', function(players) {
+
+});
+
+socket.on('frame', function(p, objects) {
+	p.forEach(function(player) {
+		if (!players[player.id]) {
+			players[player.id] = {};
+			var shape = new Player([player.x, player.y]);
+			shape.fillColor = 'white';
+			players[player.id].shape = shape;
+		}
+		players[player.id].shape.setPosition(player.x, player.y);
+		players[player.id].x = player.x;
+		players[player.id].y = player.y;
+	});
+});
+
 function welcome(){
   $('#nickForm').bind('submit',function(e){
     var nickname = $('#nickname').val().trim();
