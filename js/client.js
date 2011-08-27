@@ -58,14 +58,10 @@ function Player(x,y){
   return jimbo;
 }
 
-$(window).keydown(function() {
-	if event
-});
-
-function onkeyDown(event) {
+function onKeyDown(event) {
 	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		if (Key.isDown(key)) {
-			socket.emit(event.key);
+			socket.emit(key);
 		}
 	});
 	/*switch (true) {
@@ -87,22 +83,42 @@ function onFrame(event) {
 
 
 var players = {};
+var myId = -1;
 
 socket.on('players', function(players) {
 
 });
 
-socket.on('frame', function(p, objects) {
-	p.forEach(function(player) {
-		if (!players[player.id]) {
-			players[player.id] = {};
-			var shape = new Player([player.x, player.y]);
-			players[player.id].shape = shape;
-		}
-		players[player.id].shape.setPosition(player.x, player.y);
-		players[player.id].x = player.x;
-		players[player.id].y = player.y;
-	});
+socket.on('id',function(id){
+
+  //Emmmm, This is my id \0/
+  myId = id;
+
+  //@FIXME what if user be disconnected for a moment? does socket.io understand
+  // this situation? if not, we should check if myId is -1 ;)
+  // and if it is not -1, we should emit disconnect manually and then set the
+  // newly created id.
+
+  //start rendering frames right after you recognized your self
+  socket.on('frame', function(p, objects) {
+	  p.forEach(function(player) {
+		  if (!players[player.id]) {
+			  players[player.id] = {};
+        var shape = new Player([player.x, player.y]);
+        if( player.id === myId){
+          shape.fillColor = 'white';
+        }
+        players[player.id].shape = shape;
+      }
+      players[player.id].shape.setPosition(player.x, player.y);
+      players[player.id].x = player.x;
+      players[player.id].y = player.y;
+    });
+
+    view.setCenter(players[myId].position);
+
+  });
+
 });
 
 function welcome(){

@@ -43,15 +43,15 @@ io.sockets.on('connection', function(socket) {
 		});
 		socket.on('right', function() {
 			player.x += SPEED;
-			if (player.x < 0) {
-				removePlayer(player, socket);
-			}
+			//if (player.x < 0) {
+			//	removePlayer(player, socket);
+			//}
 		});
 		socket.on('left', function() {
 			player.x -= SPEED;
-			if (player.x > 809) {
-				removePlayer(player, socket);
-			}
+			//if (player.x > 809) {
+			//	removePlayer(player, socket);
+			//}
 		});
 		socket.on('fire', function() {
 			
