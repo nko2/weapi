@@ -5,4 +5,5 @@ air forces.
 
 ## What we used
 
-* [V5 Prophit Cell](http://www.dafont.com/v5prophit-cell.font) font face.
+* Paper.js - [Website](http://paperjs.org/tutorials/getting-started/working-with-paper-js/)
+* V5 Prophit Cell by [vFive Digital](http://www.dafont.com/vfive-digital.d20)
