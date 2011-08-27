@@ -36,6 +36,26 @@ function BloodWidget(position){
   this.setBlood(100);
 }
 
+/**
+ * Creates a new Player
+ **/
+function Player(x,y){
+  var jimbo = new Path();
+      jimbo.moveTo(0,0);
+      jimbo.lineTo(10,20);
+      jimbo.lineTo(3,18);
+      jimbo.lineTo(2,20);
+      jimbo.lineTo(-2,20);
+      jimbo.lineTo(-3,18);
+      jimbo.lineTo(-10,20);
+      jimbo.closePath();
+      jimbo.strokeColor = 'black';
+      jimbo.fillColor = 'black';
+      jimbo.setPosition(x,y);
+
+  return jimbo;
+}
+
 function onKeyDown(event) {
 	switch (event.key) {
 		case 'up':
