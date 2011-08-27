@@ -30,7 +30,7 @@ var removePlayer = function(player, socket) {
 
 io.sockets.on('connection', function(socket) {
 	socket.on('join', function(nickname) {
-		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy:-2};
+		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy:-3};
 		player.nickname = nickname;
 		players.push(player);
 		socket.emit('id', player.id);
@@ -38,7 +38,7 @@ io.sockets.on('connection', function(socket) {
 			player.vy = -SPEED - 2;
 		});
 		socket.on('down', function() {
-			player.vy = -2;
+			player.vy = -1;
 		});
 		socket.on('right', function() {
 			player.vx = SPEED + 2;
@@ -63,12 +63,12 @@ io.sockets.on('connection', function(socket) {
 
 var frameInterval = setInterval(function() {
 	players.forEach(function(player) {
-		if (player.vy < -2) {
-			if (Math.abs(player.vy) < SPEED) {
-				player.y += player.vy;
-			} else {
-				player.y += -SPEED;
-			}
+		if (Math.abs(player.vy) < SPEED) {
+			player.y += player.vy;
+		} else {
+			player.y += -SPEED;
+		}
+		if (player.vy < -3) {
 			player.vy += 1;
 		}
 		if (player.vx) {
