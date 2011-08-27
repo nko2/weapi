@@ -18,6 +18,4 @@ function onFrame(event) {
 
 }
 
-function startGame(nickname) {
-	socket.emit('join', nickname);
-}
+socket.emit('join', nickname);
