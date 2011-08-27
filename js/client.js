@@ -3,6 +3,11 @@ var players = {};
 var layers = {};
 var myId = -1;
 
+  // create layers
+layers['stars']   = new Layer();
+layers['players'] = new Layer();
+layers['me'] = new Layer();
+layers['widgets'] = new Layer();
 
 function ArcD(center, radius, angle) {
 	if(! center.x ){ // assume it as an array
@@ -16,6 +21,7 @@ function ArcD(center, radius, angle) {
 }
 
 function BloodWidget(position){
+  layers['widgets'].activate();
   var thickness = 10;
   var bgColor = '#868686';
   var color = '#616161';
@@ -40,6 +46,26 @@ function BloodWidget(position){
   this.setBlood(100);
 }
 
+function stars(count){
+  layers['stars'].activate();
+  // Create a symbol, which we will use to place instances of later:
+  var path = new Path.Circle(new Point(0, 0), 3);
+  path.style = {
+    fillColor: 'white',
+    strokeColor: 'black',
+  };
+  path.opacity = 0.5;
+  var symbol = new Symbol(path);
+
+  // Place the instances of the symbol:
+  for (var i = 0; i < count; i++) {
+    // The center position is a random point in the view:
+    var center = Point.random() * view.size;
+    var placedSymbol = symbol.place(center);
+    placedSymbol.scale(i / count);
+  }
+
+}
 /**
  * Creates a new Player
  **/
@@ -71,7 +97,19 @@ setInterval(function () {
 }, 100);
 
 function onFrame(event) {
+  // move stars
+  var count = layers['stars'].children.length;
+  for (var i = 0; i < count; i++) {
+    var item = layers['stars'].children[i];
+    
+    item.position.y += item.bounds.height / 20;
 
+    // If the item has left the view on the right, move it back
+    // to the left:
+    if (item.bounds.bottom > view.size.height) {
+      item.position.y = -item.bounds.height;
+    }
+  }
 }
 
 
@@ -89,21 +127,18 @@ socket.on('id',function(id){
   // newly created id.
   myId = id;
 
-  // create layers
-  layers['widgets'] = new Layer();
-  layers['players'] = new Layer();
-  layers['stars']   = new Layer();
-
-
   //start rendering frames right after you recognized your self
   var oldPosition;
   socket.on('frame', function(p, objects) {
-	  p.forEach(function(player) {
+  
+    //we want to operate on players and objects.
+    layers['players'].activate();
+    p.forEach(function(player) {
 		  if (!players[player.id]) {
 			  players[player.id] = {};
         var shape = new Player([player.x, player.y]);
         if( player.id === myId){
-		      oldPosition = shape.position;
+    		  oldPosition = shape.position;
           shape.fillColor = 'white';
         }
         players[player.id].shape = shape;
@@ -115,8 +150,47 @@ socket.on('id',function(id){
       players[player.id].x = player.x;
       players[player.id].y = player.y;
     });
-    
-    view.scrollBy(players[myId].shape.position - oldPosition);
+
+    layers['players'].translate(players[myId].shape.position - oldPosition);
+    /*var translate;
+    var oldPosition;
+    var newPosition;
+    var diff;
+	  p.forEach(function(player) {
+
+      // is it a new player? yes: add it to the list
+		  if (!players[player.id]) {
+			  players[player.id] = {};
+			  var shape;
+			  if( player.id === myId){
+			    //layers['me'].activate();
+          shape = new Player([player.x, player.y]);
+          shape.fillColor = 'white';
+          //layers['players'].activate();
+          oldPosition = shape.position.clone();
+        }else{
+          shape = new Player([player.x, player.y]);
+        }
+        players[player.id].shape = shape;
+      }
+      newPosition = new Point(player.x,player.y);
+
+      diff = newPosition - oldPosition;
+//      diff = diff;
+      
+      oldPosition = newPosition;
+      
+      if(player.id == myId){
+        if(diff.x !=0 && diff.y != 0)
+          translate = diff;
+      }else{
+        players[player.id].shape.setPosition(player.x, player.y);
+        players[player.id].x = player.x;
+        players[player.id].y = player.y;
+      }
+    });
+    if(translate)
+      layers['players'].translate(translate);*/
   });
 
 });
@@ -139,6 +213,7 @@ function welcome(){
   $('#modal .wrapper').append($('#welcomeScreen')).parent().fadeIn();
 }
 
+stars(150);
 welcome();
 
 var bloodWidget = new BloodWidget(new Point(775,35));
