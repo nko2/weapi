@@ -1,45 +1,39 @@
 var socket = io.connect();
 
-/*function ArcD(center,r,d){
-  if(! center.x ){ // assume it as an array
-    center = new Point(center[0],center[1]);
-  }
-  var side = center.clone();
-  side.x -= r;
-  var vector = center - side;
-  vector.angle += d;
-  var arc = new Path();
-  arc.add(side);
-  arc.arcTo(center + vector);
-  return arc;
-}*/
+function ArcD(center, radius, angle) {
+	if(! center.x ){ // assume it as an array
+		center = new Point(center[0],center[1]);
+	}
+	var from = new Point(center.x, center.y - radius);
+	var through = from.rotate(angle/2, center);
+	var to = from.rotate(angle, center);
+	var arc = new Path.Arc(from, through, to);
+	return arc;
+}
 
-function bloodWidget(position){
+function BloodWidget(position){
   var thickness = 10;
   var bgColor = '#868686';
   var color = '#616161';
-  //blood is full when user starts!
-  this.blood = 100;
 
   //blood widget, an arc at top corner
-  var backPath = this.backPath = new Path.Circle([40,40],20);
-  //@FIXME this is fake! use a real arc instead;
-  var bloodPath = this.backPath = new Path.Circle([40,40],20);
-  
-  backPath.setPosition(position);
-  bloodPath.setPosition(position);
-  
-  backPath.strokeColor = bgColor;
-  backPath.strokeWidth = thickness+3;
+  var backPath = this.backPath = new Path.Circle(position,20);
 
-  bloodPath.strokeColor = color;
-  bloodPath.strokeWidth = thickness;
-  bloodPath.opacity = 1;
-  
-  this.setBlood = function(blood){
+  backPath.strokeColor = bgColor;
+  backPath.strokeWidth = thickness + 3;
+
+  this.setBlood = function(blood) {
     this.blood = blood;
-    //@TODO draw arc
+    if (this.bloodPath) {
+      this.bloodPath.remove();
+    }
+    bloodPath = this.bloodPath = new ArcD(position, 20, (360 * blood / 100) - 0.001);
+    bloodPath.strokeWidth = thickness;
+    bloodPath.strokeColor = color;
+    bloodPath.opacity = 1;
   }
+  //blood is full when user starts!
+  this.setBlood(100);
 }
 
 function onKeyDown(event) {
@@ -77,4 +71,4 @@ function welcome(){
 
 welcome();
 
-new bloodWidget(new Point(775,35));
+var bloodWidget = new BloodWidget(new Point(775,35));
