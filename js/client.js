@@ -6,7 +6,6 @@ var myId = -1;
   // create layers
 layers['stars']   = new Layer();
 layers['players'] = new Layer();
-layers['me'] = new Layer();
 layers['widgets'] = new Layer();
 
 function ArcD(center, radius, angle) {
@@ -58,7 +57,7 @@ function stars(count){
   var symbol = new Symbol(path);
 
   // Place the instances of the symbol:
-  for (var i = 0; i < count; i++) {
+  for (var i = 1; i < count; i++) {
     // The center position is a random point in the view:
     var center = Point.random() * view.size;
     var placedSymbol = symbol.place(center);
@@ -94,8 +93,11 @@ function onFrame(event) {
   for (var i = 0; i < count; i++) {
     var item = layers['stars'].children[i];
     
-    item.position.y += item.bounds.height / 20;
-
+    item.position.y += item.bounds.height;
+    if(myId != -1){
+      item.position.x -= players[myId].vx;
+//      item.position.x += players[myId].shape.position.x
+    }
     // If the item has left the view on the right, move it back
     // to the left:
     if (item.bounds.bottom > view.size.height) {
@@ -154,47 +156,10 @@ socket.on('id',function(id){
       players[player.id].shape.setPosition(player.x, player.y);
       players[player.id].x = player.x;
       players[player.id].y = player.y;
+      players[player.id].vx = player.vx;
     });
 
     layers['players'].translate( oldPosition - players[myId].shape.position);
-    /*var translate;
-    var oldPosition;
-    var newPosition;
-    var diff;
-	  p.forEach(function(player) {
-
-      // is it a new player? yes: add it to the list
-		  if (!players[player.id]) {
-			  players[player.id] = {};
-			  var shape;
-			  if( player.id === myId){
-			    layers['me'].activate();
-          shape = new Player([player.x, player.y]);
-          shape.fillColor = 'white';
-          layers['players'].activate();
-        }else{
-          shape = new Player([player.x, player.y]);
-        }
-        players[player.id].shape = shape;
-      }
-      
-      if(player.id == myId){
-        oldPosition = players[myId].shape.position.clone();
-        newPosition = new Point(player.x,player.y);
-        diff = newPosition - oldPosition;
-        if(diff.x !=0 && diff.y != 0){
-          translate = new Point(-1 * diff.x , -1 * diff.y);
-        }
-        else
-          translate = new Point(0,0);
-      }else{
-        players[player.id].shape.setPosition(player.x, player.y);
-        players[player.id].x = player.x;
-        players[player.id].y = player.y;
-      }
-    });
-    if(translate)
-      layers['players'].translate(translate);*/
   });
 
 });
@@ -217,7 +182,7 @@ function welcome(){
   $('#modal .wrapper').append($('#welcomeScreen')).parent().fadeIn();
 }
 
-stars(150);
+stars(100);
 welcome();
 
 var bloodWidget = new BloodWidget(new Point(775,35));
