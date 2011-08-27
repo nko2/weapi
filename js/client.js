@@ -90,23 +90,28 @@ socket.on('id',function(id){
   // newly created id.
 
   //start rendering frames right after you recognized your self
+  var oldPosition;
   socket.on('frame', function(p, objects) {
 	  p.forEach(function(player) {
 		  if (!players[player.id]) {
 			  players[player.id] = {};
         var shape = new Player([player.x, player.y]);
         if( player.id === myId){
+		
+		  oldPosition = shape.position;
           shape.fillColor = 'white';
         }
         players[player.id].shape = shape;
+      }
+      if (player.id == myId) {
+		oldPosition = players[myId].shape.position.clone();
       }
       players[player.id].shape.setPosition(player.x, player.y);
       players[player.id].x = player.x;
       players[player.id].y = player.y;
     });
 
-    view.setCenter(players[myId].position);
-
+    view.scrollBy(players[myId].shape.position - oldPosition);
   });
 
 });
