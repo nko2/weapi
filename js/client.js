@@ -42,12 +42,14 @@ function BloodWidget(position){
 function Player(x,y){
   var jimbo = new Path();
       jimbo.moveTo(0,0);
+      jimbo.lineTo(10,13);
       jimbo.lineTo(10,20);
-      jimbo.lineTo(3,18);
+      jimbo.lineTo(3,17);
       jimbo.lineTo(2,20);
       jimbo.lineTo(-2,20);
-      jimbo.lineTo(-3,18);
+      jimbo.lineTo(-3,17);
       jimbo.lineTo(-10,20);
+      jimbo.lineTo(-10,13);
       jimbo.closePath();
       jimbo.strokeColor = 'black';
       jimbo.fillColor = 'black';
