@@ -87,6 +87,8 @@ function Player(x,y){
   return jimbo;
 }
 
+var lastZoom  = 1;
+
 function onFrame(event) {
   // move stars
   var count = layers['stars'].children.length;
@@ -95,20 +97,58 @@ function onFrame(event) {
     
     var vy = -1 * item.bounds.height;
     var vx = 0;
-    if(myId != -1){
-      vy = players[myId].vy;
+    if(players[myId]){
+      vy = players[myId].vy - item.bounds.height / 5;
       vx = players[myId].vx;
     }
 
     item.position.x -= vx;
     item.position.y -= vy;
+
+    if(item.bounds.left < view.bounds.left){
+      item.position.x = view.bounds.right - vx;
+    }
+    if(item.bounds.right > view.bounds.right + 10){
+      item.position.x =  view.bounds.left;
+    }
     // If the item has left the view on the right, move it back
     // to the left:
     if (item.bounds.bottom > view.size.height) {
       item.position.y = -1 * vy;
     }
   }
+  if(!players[myId]) return;
+  //zoom
+  var maxZoom = 20;
+  var minZoom = -20;
+  var initialZoom = 1;
+  var stepZoom = 1;
+  var scaleFactor = 1.02;
+  var currentZoom = lastZoom;
+  var position = players[myId].shape.position.clone();
+
+  if(Key.isDown('down')){
+    if(currentZoom < maxZoom){
+      layers['players'].scale( scaleFactor ,position);
+      lastZoom = currentZoom + stepZoom;
+    }
+  }else if (Key.isDown('up')){
+    if(currentZoom > minZoom){
+      layers['players'].scale( 1 / scaleFactor,position);
+      lastZoom = currentZoom - stepZoom;
+    }
+  }else{
+    if(currentZoom > initialZoom){
+      layers['players'].scale(1/scaleFactor,position);
+      lastZoom = currentZoom - stepZoom;
+    }else if( currentZoom < initialZoom){
+      layers['players'].scale(scaleFactor,position);
+      lastZoom = currentZoom + stepZoom;
+    }
+  }
+
 }
+
 
 var keyTimer;
 
@@ -126,6 +166,11 @@ function onKeyDown() {
 	checkKeys();
 }
 
+function onKeyUp(e){
+  if(e.key == 'down'){
+    socket.emit('up');
+  }
+}
 socket.on('players', function(players) {
 
 });
@@ -187,7 +232,7 @@ function welcome(){
   $('#modal .wrapper').append($('#welcomeScreen')).parent().fadeIn();
 }
 
-stars(100);
+stars(60);
 welcome();
 
 var bloodWidget = new BloodWidget(new Point(775,35));
