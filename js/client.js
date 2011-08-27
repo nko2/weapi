@@ -86,7 +86,7 @@ socket.on('frame', function(p, objects) {
 	p.forEach(function(player) {
 		if (!players[player.id]) {
 			players[player.id] = {};
-			var shape = new Path.Circle([player.x, player.y], 10);
+			var shape = new Player([player.x, player.y]);
 			shape.fillColor = 'white';
 			players[player.id].shape = shape;
 		}
