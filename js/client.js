@@ -58,19 +58,24 @@ function Player(x,y){
   return jimbo;
 }
 
-setInterval(function () {
+function onFrame() {
+}
+
+var keyTimer;
+
+var checkKeys = function () {
 	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		if (Key.isDown(key)) {
 			socket.emit(key);
+			clearTimeout(keyTimer);
+			keyTimer = setTimeout(checkKeys, 50);
 		}
 	});
-}, 100);
+};
 
-function onFrame(event) {
-
+function onKeyDown() {
+	checkKeys();
 }
-
-
 
 var players = {};
 var myId = -1;
