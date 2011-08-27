@@ -33,7 +33,7 @@ io.sockets.on('connection', function(socket) {
 		var	player = {id: Date.now() + Math.random(), x:405 , y:100, blood: 100};
 		player.nickname = nickname;
 		players.push(player);
-		//socket.emit('players', players, player.id);
+		socket.emit('id', player.id);
 		//socket.broadcast.emit('player', player);
 		socket.on('up', function() {
 			player.y -= SPEED;

@@ -58,18 +58,26 @@ function Player(x,y){
   return jimbo;
 }
 
-function onKeyDown(event) {
-	switch (event.key) {
-		case 'up':
-		case 'down':
+$(window).keydown(function() {
+	if event
+});
+
+function onkeyDown(event) {
+	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
+		if (Key.isDown(key)) {
+			socket.emit(event.key);
+		}
+	});
+	/*switch (true) {
+		case Key.isDown('up'):
+		case Key.isDown('down'):
 		case 'left':
 		case 'right':
-			socket.emit(event.key);
 			break;
 		case 'space':
 			socket.emit('fire');
 			break;
-	}
+	}*/
 }
 
 function onFrame(event) {
@@ -89,7 +97,6 @@ socket.on('frame', function(p, objects) {
 		if (!players[player.id]) {
 			players[player.id] = {};
 			var shape = new Player([player.x, player.y]);
-			shape.fillColor = 'white';
 			players[player.id].shape = shape;
 		}
 		players[player.id].shape.setPosition(player.x, player.y);
