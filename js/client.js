@@ -138,7 +138,7 @@ socket.on('id',function(id){
   
     //we want to operate on players and objects.
     layers['players'].activate();
-    p.forEach(function(player) {
+    /*p.forEach(function(player) {
 		  if (!players[player.id]) {
 			  players[player.id] = {};
         var shape = new Player([player.x, player.y]);
@@ -156,8 +156,8 @@ socket.on('id',function(id){
       players[player.id].y = player.y;
     });
 
-    layers['players'].translate(players[myId].shape.position - oldPosition);
-    /*var translate;
+    layers['players'].translate(players[myId].shape.position - oldPosition);*/
+    var translate;
     var oldPosition;
     var newPosition;
     var diff;
@@ -168,26 +168,25 @@ socket.on('id',function(id){
 			  players[player.id] = {};
 			  var shape;
 			  if( player.id === myId){
-			    //layers['me'].activate();
+			    layers['me'].activate();
           shape = new Player([player.x, player.y]);
           shape.fillColor = 'white';
-          //layers['players'].activate();
-          oldPosition = shape.position.clone();
+          layers['players'].activate();
         }else{
           shape = new Player([player.x, player.y]);
         }
         players[player.id].shape = shape;
       }
-      newPosition = new Point(player.x,player.y);
-
-      diff = newPosition - oldPosition;
-//      diff = diff;
-      
-      oldPosition = newPosition;
       
       if(player.id == myId){
-        if(diff.x !=0 && diff.y != 0)
-          translate = diff;
+        oldPosition = players[myId].shape.position.clone();
+        newPosition = new Point(player.x,player.y);
+        diff = newPosition - oldPosition;
+        if(diff.x !=0 && diff.y != 0){
+          translate = new Point(-1 * diff.x , -1 * diff.y);
+        }
+        else
+          translate = new Point(0,0);
       }else{
         players[player.id].shape.setPosition(player.x, player.y);
         players[player.id].x = player.x;
@@ -195,7 +194,7 @@ socket.on('id',function(id){
       }
     });
     if(translate)
-      layers['players'].translate(translate);*/
+      layers['players'].translate(translate);
   });
 
 });
