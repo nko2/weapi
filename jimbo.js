@@ -38,7 +38,7 @@ io.sockets.on('connection', function(socket) {
 			player.vy = -SPEED - 2;
 		});
 		socket.on('down', function() {
-			player.vy = SPEED + 2;
+			player.vy = -2;
 		});
 		socket.on('right', function() {
 			player.vx = SPEED + 2;
@@ -63,13 +63,13 @@ io.sockets.on('connection', function(socket) {
 
 var frameInterval = setInterval(function() {
 	players.forEach(function(player) {
-		if (player.vy) {
+		if (player.vy < -2) {
 			if (Math.abs(player.vy) < SPEED) {
 				player.y += player.vy;
 			} else {
-				player.y += player.vy > 0 ? SPEED : -SPEED;
+				player.y += -SPEED;
 			}
-			player.vy += player.vy > 0 ? -1 : 1;
+			player.vy += 1;
 		}
 		if (player.vx) {
 			if (Math.abs(player.vx) < SPEED) {
