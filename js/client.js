@@ -64,16 +64,6 @@ function onKeyDown(event) {
 			socket.emit(key);
 		}
 	});
-	/*switch (true) {
-		case Key.isDown('up'):
-		case Key.isDown('down'):
-		case 'left':
-		case 'right':
-			break;
-		case 'space':
-			socket.emit('fire');
-			break;
-	}*/
 }
 
 function onFrame(event) {
