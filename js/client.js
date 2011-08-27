@@ -1,4 +1,8 @@
 var socket = io.connect();
+var players = {};
+var layers = {};
+var myId = -1;
+
 
 function ArcD(center, radius, angle) {
 	if(! center.x ){ // assume it as an array
@@ -72,8 +76,6 @@ function onFrame(event) {
 
 
 
-var players = {};
-var myId = -1;
 
 socket.on('players', function(players) {
 
@@ -81,13 +83,17 @@ socket.on('players', function(players) {
 
 socket.on('id',function(id){
 
-  //Emmmm, This is my id \0/
-  myId = id;
-
   //@FIXME what if user be disconnected for a moment? does socket.io understand
   // this situation? if not, we should check if myId is -1 ;)
   // and if it is not -1, we should emit disconnect manually and then set the
   // newly created id.
+  myId = id;
+
+  // create layers
+  layers['widgets'] = new Layer();
+  layers['players'] = new Layer();
+  layers['stars']   = new Layer();
+
 
   //start rendering frames right after you recognized your self
   var oldPosition;
@@ -97,20 +103,19 @@ socket.on('id',function(id){
 			  players[player.id] = {};
         var shape = new Player([player.x, player.y]);
         if( player.id === myId){
-		
-		  oldPosition = shape.position;
+		      oldPosition = shape.position;
           shape.fillColor = 'white';
         }
         players[player.id].shape = shape;
       }
       if (player.id == myId) {
-		oldPosition = players[myId].shape.position.clone();
+		    oldPosition = players[myId].shape.position.clone();
       }
       players[player.id].shape.setPosition(player.x, player.y);
       players[player.id].x = player.x;
       players[player.id].y = player.y;
     });
-
+    
     view.scrollBy(players[myId].shape.position - oldPosition);
   });
 
