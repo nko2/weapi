@@ -22,14 +22,22 @@ io = io.listen(app);
 var players = [];
 
 io.sockets.on('connection', function(socket) {
-	var	player = {x:405 , y:100};
-	players.push(player);
-	var player.index = players.indexOf(player);
+	var	player = {id: Date.now() + Math.random(), x:405 , y:100, vx:0, vy:0};
 	socket.on('join', function(nickname) {
 		player.nickname = nickname;
-	});
-	socket.on('disconnect', function() {
-		delete players.[player.index];
-		socket.broadcast.emit('leave', player.index);
+		players.push(player);
+		socket.emit('players', players, player.id);
+		socket.broadcast.emit('player', player);
+		socket.on('disconnect', function() {
+			players.splice(players.indexOf(player), 1);
+			socket.broadcast.emit('leave', player.id);
+		});
 	});
 });
+
+var frameInterval = setInterval(function() {
+	players.forEach(function(player) {
+		player.x += player.vx;
+		player.y += player.vy;
+	});
+}, 40);
