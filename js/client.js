@@ -56,7 +56,7 @@ function onFrame(event) {
 
 
 function welcome(){
-  $('#startBtn').bind('click',function(){
+  $('#nickForm').bind('submit',function(e){
     var nickname = $('#nickname').val().trim();
     if(nickname.match(/^\w+$/)){
       socket.emit('join',nickname);
@@ -65,6 +65,7 @@ function welcome(){
       alert('Please use alphanumeric characters only');
       $('#nickname').focus();
     }
+    e.preventDefault();
   });
   $('#modal .wrapper').append($('#welcomeScreen')).parent().fadeIn();
 }
