@@ -38,10 +38,10 @@ input[type="text"]{
 
 input[type="button"]{
   border:1px solid #ccc;
-  background-color:#F45902;
+  background-color:#FFB700;
   padding:10px;
   font-family:prophit;
-  font-size:10px;
+  font-size:18px;
   color:#000;
 }
 
@@ -86,7 +86,6 @@ canvas{
   opacity:0.8;
   top:0;
   z-index:90;
-  border-top:3px solid #23003A;
 }
 
 .stuff{
