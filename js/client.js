@@ -112,7 +112,10 @@ socket.on('id',function(id){
 });
 
 function welcome(){
-  $('#nickForm').bind('submit',function(e){
+  $('#nickForm').bind('submit',function(){
+	if (myId != -1) {
+		return false; 
+	}
     var nickname = $('#nickname').val().trim();
     if(nickname.match(/^\w+$/)){
       socket.emit('join',nickname);
@@ -121,7 +124,7 @@ function welcome(){
       alert('Please use alphanumeric characters only');
       $('#nickname').focus();
     }
-    e.preventDefault();
+    return false;
   });
   $('#modal .wrapper').append($('#welcomeScreen')).parent().fadeIn();
 }
