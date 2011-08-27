@@ -138,7 +138,7 @@ socket.on('id',function(id){
   
     //we want to operate on players and objects.
     layers['players'].activate();
-    /*p.forEach(function(player) {
+    p.forEach(function(player) {
 		  if (!players[player.id]) {
 			  players[player.id] = {};
         var shape = new Player([player.x, player.y]);
@@ -156,8 +156,8 @@ socket.on('id',function(id){
       players[player.id].y = player.y;
     });
 
-    layers['players'].translate(players[myId].shape.position - oldPosition);*/
-    var translate;
+    layers['players'].translate(players[myId].shape.position - oldPosition);
+    /*var translate;
     var oldPosition;
     var newPosition;
     var diff;
@@ -194,7 +194,7 @@ socket.on('id',function(id){
       }
     });
     if(translate)
-      layers['players'].translate(translate);
+      layers['players'].translate(translate);*/
   });
 
 });
