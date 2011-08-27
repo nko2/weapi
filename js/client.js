@@ -62,13 +62,13 @@ function Player(x,y){
   return jimbo;
 }
 
-function onKeyDown(event) {
+setInterval(function () {
 	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		if (Key.isDown(key)) {
 			socket.emit(key);
 		}
 	});
-}
+}, 100);
 
 function onFrame(event) {
 
