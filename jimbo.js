@@ -21,7 +21,7 @@ io = io.listen(app);
 
 var objects = [];
 var players = [];
-var SPEED = 4;
+var SPEED = 5;
 
 var removePlayer = function(player, socket) {
 	players.splice(players.indexOf(player), 1);
@@ -30,25 +30,24 @@ var removePlayer = function(player, socket) {
 
 io.sockets.on('connection', function(socket) {
 	socket.on('join', function(nickname) {
-		var	player = {id: Date.now() + Math.random(), x:405 , y:100, blood: 100};
+		var	player = {id: Date.now() + Math.random(), x:405 , y:100, blood: 100, vx: 0, vy:0};
 		player.nickname = nickname;
 		players.push(player);
 		socket.emit('id', player.id);
-		//socket.broadcast.emit('player', player);
 		socket.on('up', function() {
-			player.y -= SPEED;
+			player.vy = -SPEED - 2;
 		});
 		socket.on('down', function() {
-			player.y += SPEED;
+			player.vy = SPEED + 2;
 		});
 		socket.on('right', function() {
-			player.x += SPEED;
+			player.vx = SPEED + 2;
 			//if (player.x < 0) {
 			//	removePlayer(player, socket);
 			//}
 		});
 		socket.on('left', function() {
-			player.x -= SPEED;
+			player.vx = -SPEED - 2;
 			//if (player.x > 809) {
 			//	removePlayer(player, socket);
 			//}
@@ -64,7 +63,22 @@ io.sockets.on('connection', function(socket) {
 
 var frameInterval = setInterval(function() {
 	players.forEach(function(player) {
-		//player.y += SPEED;
+		if (player.vy) {
+			if (Math.abs(player.vy) < SPEED) {
+				player.y += player.vy;
+			} else {
+				player.y += player.vy > 0 ? SPEED : -SPEED;
+			}
+			player.vy += player.vy > 0 ? -1 : 1;
+		}
+		if (player.vx) {
+			if (Math.abs(player.vx) < SPEED) {
+				player.x += player.vx;
+			} else {
+				player.x += player.vx > 0 ? SPEED : -SPEED;
+			}
+			player.vx += player.vx > 0 ? -1 : 1;
+		}
 	});
 
 	io.sockets.volatile.emit('frame', players, objects);
