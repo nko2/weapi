@@ -1,1 +1,25 @@
-Hello World
+<!doctype html>
+<head>
+<title>Jimbo</title>
+<style>
+    html, body {
+        margin: 0px;
+        padding: 0px;
+    }
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        border: 2px solid #000;
+    }
+</style>
+<script src="/js/paper.js"></script>
+<script type="text/paperscript" src="/js/client.js" data-paper-canvas="canvas"></script>
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<html>
+<body>
+<canvas id="canvas" width="800" height="600"> </canvas>
+</body>
+</html>
+
