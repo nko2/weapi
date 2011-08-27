@@ -1,5 +1,47 @@
 var socket = io.connect();
 
+/*function ArcD(center,r,d){
+  if(! center.x ){ // assume it as an array
+    center = new Point(center[0],center[1]);
+  }
+  var side = center.clone();
+  side.x -= r;
+  var vector = center - side;
+  vector.angle += d;
+  var arc = new Path();
+  arc.add(side);
+  arc.arcTo(center + vector);
+  return arc;
+}*/
+
+function bloodWidget(position){
+  var thickness = 10;
+  var bgColor = '#868686';
+  var color = '#616161';
+  //blood is full when user starts!
+  this.blood = 100;
+
+  //blood widget, an arc at top corner
+  var backPath = this.backPath = new Path.Circle([40,40],20);
+  //@FIXME this is fake! use a real arc instead;
+  var bloodPath = this.backPath = new Path.Circle([40,40],20);
+  
+  backPath.setPosition(position);
+  bloodPath.setPosition(position);
+  
+  backPath.strokeColor = bgColor;
+  backPath.strokeWidth = thickness+3;
+
+  bloodPath.strokeColor = color;
+  bloodPath.strokeWidth = thickness;
+  bloodPath.opacity = 1;
+  
+  this.setBlood(blood){
+    this.blood = blood;
+    //@TODO draw arc
+  }
+}
+
 function onKeyDown(event) {
 	switch (event.key) {
 		case 'up':
@@ -18,4 +60,9 @@ function onFrame(event) {
 
 }
 
-socket.emit('join', nickname);
+function welcomeScreen(){
+  var modal = document.getElementById('modal');
+}
+
+new bloodWidget(new Point(775,35));
+//socket.emit('join', nickname);
