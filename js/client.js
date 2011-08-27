@@ -88,14 +88,6 @@ function Player(x,y){
   return jimbo;
 }
 
-setInterval(function () {
-	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
-		if (Key.isDown(key)) {
-			socket.emit(key);
-		}
-	});
-}, 100);
-
 function onFrame(event) {
   // move stars
   var count = layers['stars'].children.length;
@@ -112,8 +104,21 @@ function onFrame(event) {
   }
 }
 
+var keyTimer;
 
+var checkKeys = function () {
+	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
+		if (Key.isDown(key)) {
+			socket.emit(key);
+			clearTimeout(keyTimer);
+			keyTimer = setTimeout(checkKeys, 50);
+		}
+	});
+};
 
+function onKeyDown() {
+	checkKeys();
+}
 
 socket.on('players', function(players) {
 
