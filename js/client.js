@@ -36,7 +36,7 @@ function bloodWidget(position){
   bloodPath.strokeWidth = thickness;
   bloodPath.opacity = 1;
   
-  this.setBlood(blood){
+  this.setBlood = function(blood){
     this.blood = blood;
     //@TODO draw arc
   }
@@ -60,9 +60,21 @@ function onFrame(event) {
 
 }
 
-function welcomeScreen(){
-  var modal = document.getElementById('modal');
+
+function welcome(){
+  $('#startBtn').bind('click',function(){
+    var nickname = $('#nickname').val().trim();
+    if(nickname.match(/^\w+$/)){
+      socket.emit('join',nickname);
+      $('#modal').fadeOut('fast');
+    }else{
+      alert('Please use alphanumeric characters only');
+      $('#nickname').focus();
+    }
+  });
+  $('#modal .wrapper').append($('#welcomeScreen')).parent().fadeIn();
 }
 
+welcome();
+
 new bloodWidget(new Point(775,35));
-//socket.emit('join', nickname);

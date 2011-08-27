@@ -7,6 +7,7 @@
 <link href='/favicon.ico' rel='shortcut icon'>
 <link href="/css/style.css" rel="stylesheet">
 <script src="/js/paper.js"></script>
+<script src="/js/jquery.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script type="text/paperscript" src="/js/client.js" data-paper-canvas="canvas" data-paper-keepalive="true"></script>
 </head>
@@ -16,8 +17,24 @@
   <h1>Jimbo Jet</h1>
 </header>
 <div class="container">
-<div id="modal"></div>
+<div id="modal">
+  <div class="wrapper">
+  </div>
+  <div class="bgColor"></div>
+</div>
 <canvas id="canvas" width="809" height="500"> </canvas>
+</div>
+<div class="stuff">
+  <div id="welcomeScreen">
+      <h2>Welcome</h2>
+      <p>Welcome to Jimbo Jet! Please choose a nickname:</p>
+      <input id="nickname" type="text" autofocus/>
+      <br/>
+      <br/>
+      <h2>How to play</h2>
+      <p>Avoid...</p>
+      <center><input id="startBtn" type="button" value="Start!"/></center>
+  </div>
 </div>
 </body>
 </html>
