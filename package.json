@@ -1,0 +1,17 @@
+{
+  "author": "Weapi Team",
+  "name": "jimbo",
+  "description": "Multiplayer game",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nko2/weapi.git"
+  },
+  "engines": {
+    "node": "0.4.x"
+  },
+  "dependencies": {
+    "nko": "~0.1.1"
+  },
+  "devDependencies": {}
+}
