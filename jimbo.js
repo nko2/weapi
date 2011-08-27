@@ -19,3 +19,17 @@ app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000, function() {
 
 io = io.listen(app);
 
+var players = [];
+
+io.sockets.on('connection', function(socket) {
+	var	player = {x:405 , y:100};
+	players.push(player);
+	var player.index = players.indexOf(player);
+	socket.on('join', function(nickname) {
+		player.nickname = nickname;
+	});
+	socket.on('disconnect', function() {
+		delete players.[player.index];
+		socket.broadcast.emit('leave', player.index);
+	});
+});
