@@ -56,26 +56,12 @@ function Player(x,y){
   return jimbo;
 }
 
-$(window).keydown(function() {
-	if event
-});
-
-function onkeyDown(event) {
+function onKeyDown(event) {
 	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		if (Key.isDown(key)) {
-			socket.emit(event.key);
+			socket.emit(key);
 		}
 	});
-	/*switch (true) {
-		case Key.isDown('up'):
-		case Key.isDown('down'):
-		case 'left':
-		case 'right':
-			break;
-		case 'space':
-			socket.emit('fire');
-			break;
-	}*/
 }
 
 function onFrame(event) {
