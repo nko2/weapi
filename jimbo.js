@@ -19,18 +19,22 @@ app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000, function() {
 
 io = io.listen(app);
 
+var bullets = [];
 var objects = [];
 var players = [];
+var sockets = {};
 var SPEED = 5;
+var fire = 0;
 
-var removePlayer = function(player, socket) {
+var removePlayer = function(player) {
 	players.splice(players.indexOf(player), 1);
-	socket.broadcast.emit('leave', player.id);
+	sockets[player.id].broadcast.emit('leave', player.id);
 }
 
 io.sockets.on('connection', function(socket) {
 	socket.on('join', function(nickname) {
 		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy: -3, fire: false};
+		sockets[player.id] = socket;
 		player.nickname = nickname;
 		players.push(player);
 		socket.emit('id', player.id);
@@ -42,21 +46,15 @@ io.sockets.on('connection', function(socket) {
 		});
 		socket.on('right', function() {
 			player.vx = SPEED + 2;
-			//if (player.x < 0) {
-			//	removePlayer(player, socket);
-			//}
 		});
 		socket.on('left', function() {
 			player.vx = -SPEED - 2;
-			//if (player.x > 809) {
-			//	removePlayer(player, socket);
-			//}
 		});
-		socket.on('fire', function() {
-			player.fire = true;
+		socket.on('space', function() {
+			player.fire = ++fire;
 		});
 		socket.on('disconnect', function() {
-			removePlayer(player, socket);
+			removePlayer(player);
 		});
 	});
 });
@@ -89,8 +87,16 @@ var frameInterval = setInterval(function() {
 			player.x = 1000;
 		}
 		if (player.y < -4500) {
-			player.y = 500;
+			sockets[player.id].emit('end');
+			removePlayer(player);
 		}
+		if (player.fire) {
+			bullets.push({player: player, id: player.fire, x: player.x, y: player.y}); 
+		}
+	});
+
+	bullets.forEach(function(bullet) {
+		bullet.y += 8;
 	});
 
 	io.sockets.volatile.emit('frame', frame, players, objects);
