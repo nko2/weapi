@@ -81,7 +81,7 @@ function BloodWidget(position){
 function ScoreWidget(position){
   layers['widgets'].activate();
 
-  this.scores = [];
+  this.scores = [10];
   this.score = 0;
   
   var scoreShape = this.scoreShape = new PointText(position);
@@ -93,12 +93,13 @@ function ScoreWidget(position){
   };
   scoreShape.paragraphStyle.justification = 'center';
   
-  this.setScore = function(score){
-    this.scoreShape.content = score;
-  }
-  
-  this.push = function(score){
-    this.scores.push(score);
+  this.push = function(score,id){
+    if(id == myId){
+      this.score = score;
+      this.scoreShape.content = score;
+    }else{
+      this.scores.push(score);
+    }
   }
   
   this.flush = function(){
@@ -291,12 +292,12 @@ socket.on('id',function(id){
         if( player.id === myId){
           shape.fillColor = 'white';
           shape.strokeColor = 'white';
-          scoreWidget.setScore(player.score);
-        }else{
-          scoreWidget.push(player.score);
         }
         players[player.id].shape = shape;
       }
+      
+      scoreWidget.push(player.score,player.id);
+
       players[player.id].shape.setPosition(player.x, player.y);
       players[player.id].x = player.x;
       players[player.id].y = player.y;
