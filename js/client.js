@@ -225,17 +225,20 @@ function Game(){
 
   this.connect = function(nickname,callback){
     var socket = game.socket = io.connect();
-
     socket.on('connect',function(){
 
       socket.emit('join',nickname);
       socket.on('id',function(id){
          game.initSocket(socket,id);
-
       });
 
       callback();
     });
+  }
+  
+  this.reconnect = function(nickname,callback){
+    socket.emit('reconnect',nickname);
+    callback();
   }
   
   this.showWelcome = function(){
@@ -249,7 +252,7 @@ function Game(){
 
         var nickname = $('#nickname').val().trim();
         if(nickname.match(/^\w+$/)){
-
+          $('#modal .wrapper').html($('#waitingScreen')).parent().fadeIn();
           self.connect(nickname,function(){
             $('#modal').fadeOut();
           });
@@ -264,7 +267,7 @@ function Game(){
     $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
   }
   
-  this.showEnd = function(rank,score,time,topScores){
+  this.showEnd = function(title,rank,score,time,topScores){
     var self = this;
     var html = $('#endScreen').html();
     var nickname = $('#nickname').val().trim();
@@ -274,7 +277,7 @@ function Game(){
     topScores.forEach(function(p,i){
       scoreTable += scoresTemplate.replace('$rank$',i+1).replace('$name$',p.nickname).replace('$score$',p.score);
     });
-    
+    html = html.replace('$title$',title);
     html = html.replace('$nickname$',nickname);
     html = html.replace('$rank$',rank);
     html = html.replace('$score$',score);
@@ -282,14 +285,15 @@ function Game(){
     html = html.replace('$topscores$',scoreTable);
     html = $(html);
     
-    html.bind('submit',function(e){
-
-      self.connect(nickname,function(socket){
-        $('#modal').fadeOut('fast');
+    /*html.bind('submit',function(e){
+      e.preventDefault();
+      $('#modal .wrapper').html($('#waitingScreen')).parent().fadeIn();
+      self.reconnect(nickname,function(){
+        $('#modal').fadeOut();
       });
-      
+
       return false;
-    });
+    });*/
     
     $('#modal .wrapper').html(html).parent().fadeIn();
 
@@ -301,7 +305,7 @@ function Game(){
 	  ['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		  if (Key.isDown(key)) {
 			  preventDefault = true;
-//			  clearTimeout(keyTimer);
+			  clearTimeout(keyTimer);
 			  keyTimer = setTimeout(function(){
 			    self.checkKeys.call(self);
 			  }, 50);
@@ -400,76 +404,21 @@ function Game(){
       socket.disconnect();
       players[myId].shape.remove();
       delete players[myId];
-      self.showEnd(rank,score,time,topScores);
+      myId = -1;
+
+      self.showEnd('Mission Complete',rank,score,time,topScores);
     });
         
-    socket.on('gameover',function(){
-      //@TODO show gameover screen
+    socket.on('gameover',function(rank,score,time,topScores){
+      socket.disconnect();
+      players[myId].shape.remove();
+      delete players[myId];
+      myId = -1;
+      self.showEnd('You loosed!',rank,score,time,topScores);
     });
 
   }
 }
-
-/*Game.prototype.showGameover = function(){
-  //@TODO add game over screen
-}
-
-Game.prototype.showEnd = function(rank,score,time,topScores){
-  var self = this;
-  var html = $('#endScreen').html();
-  var nickname = $('#nickname').val().trim();
-  var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
-  var scoreTable = '';
-  if(!topScores) topScores = [];
-  topScores.forEach(function(p,i){
-    scoreTable += scoresTemplate.replace('$rank$',i+1).replace('$name$',p.nickname).replace('$score$',p.score);
-  });
-  
-  html = html.replace('$nickname$',nickname);
-  html = html.replace('$rank$',rank);
-  html = html.replace('$score$',score);
-  html = html.replace('$time$',time);
-  html = html.replace('$topscores$',scoreTable);
-  html = $(html);
-  
-  html.bind('submit',function(e){
-
-    self.connect(nickname,function(socket){
-      $('#modal').fadeOut('fast');
-    });
-    
-    return false;
-  });
-  
-  $('#modal .wrapper').html(html).parent().fadeIn();
-
-}
-
-Game.prototype.showWelcome = function(){
-    var self = this;
-
-    $('#nickForm').bind('submit',function(e){
-      e.preventDefault();
-	    if (myId != -1) {
-		    return false; 
-	    }
-
-      var nickname = $('#nickname').val().trim();
-      if(nickname.match(/^\w+$/)){
-
-        self.connect(nickname,function(){
-          $('#modal').fadeOut();
-        });
-
-      }else{
-        alert('Please use alphanumeric characters only');
-        $('#nickname').focus();
-      }
-      return false;
-    });
-
-  $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
-}*/
 
 var game = new Game();
 game.showWelcome();
