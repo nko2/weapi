@@ -6,7 +6,7 @@ var app = express.createServer();
 app.use(app.router);
 app.use(express.static(__dirname + '/'));
 
-app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000, function() {
+app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000,function() {
 	console.log('Ready');
 
 	// if run as root, downgrade to the owner of this file
@@ -18,6 +18,12 @@ app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000, function() {
 });
 
 io = io.listen(app);
+
+app.configure('production',function(){
+  io.set('log level', 0);
+  io.enable('browser client minification');
+});
+
 
 var bullets = [];
 var objects = [];
