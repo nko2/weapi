@@ -97,7 +97,7 @@ function Player(x,y){
       jimbo.lineTo(-10,20);
       jimbo.lineTo(-10,13);
       jimbo.closePath();
-      jimbo.strokeColor = 'black';
+      jimbo.strokeColor = 'white';
       jimbo.fillColor = 'gray';
       jimbo.setPosition(x,y);
 
@@ -134,8 +134,11 @@ function onFrame(event) {
       item.position.y = -1 * vy;
     }
   }
-  if(!players[myId]) return;
+//  if(!players[myId]) return;
   //zoom
+}
+
+var zoomUpdate = function() {
   var maxZoom = 20;
   var minZoom = -20;
   var initialZoom = 1;
@@ -163,8 +166,7 @@ function onFrame(event) {
       lastZoom = currentZoom + stepZoom;
     }
   }
-
-}
+};
 
 
 var keyTimer;
@@ -206,24 +208,22 @@ socket.on('id',function(id){
   myId = id;
 
   //start rendering frames right after you recognized your self
-  var oldPosition;
   var lastFrame = 0;
   socket.on('frame', function(frame, p, objects) {
   
     //we want to operate on players and objects.
     layers['players'].activate();
+	if (players[myId]) {
+    	layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
+	}
     p.forEach(function(player) {
 		  if (!players[player.id]) {
 			  players[player.id] = {};
         var shape = new Player([player.x, player.y]);
         if( player.id === myId){
-    		  oldPosition = shape.position;
           shape.fillColor = 'white';
         }
         players[player.id].shape = shape;
-      }
-      if (player.id == myId) {
-		    oldPosition = players[myId].shape.position.clone();
       }
       players[player.id].shape.setPosition(player.x, player.y);
       players[player.id].x = player.x;
@@ -241,7 +241,16 @@ socket.on('id',function(id){
 
     });
 
-    layers['players'].translate( oldPosition - players[myId].shape.position);
+    layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
+	if (layers.overview) {
+		layers.overview.remove();
+	}
+	layers.overview = layers.players.clone();
+	layers.overview.fitBounds(view.bounds);
+	layers.overview.translate([-334, 0]);
+	
+	//@FIXME zoom feature temporary disabled to be fixed later.
+	//zoomUpdate();
   });
 
   socket.on('leave', function(id) {
@@ -273,3 +282,9 @@ stars(60);
 welcome();
 
 var bloodWidget = new BloodWidget(new Point(775,35));
+layers.players.activate();
+new Path.Rectangle(new Point(-300, 500), new Point(1100, -4500));
+layers.widgets.activate();
+var overview = new Path.Rectangle(new Point(0, 0), new Point(140, 500));
+overview.fillColor = '#162126';
+overview.strokeColor = '#203040';
