@@ -1,23 +1,15 @@
-var socket = io.connect();
-
-var connected = false;
-var connect = function(){
-  connected = true;
-};
-socket.on('connect',connect);
-
-var players = {};
-var bullets = [];
-var layers = {};
-var myId = -1;
-
+  var players = {};
+  var bullets = [];
+  var layers = {};
+  var myId = -1;
+  var lastFrame = 0;
+  var keyTimer;
+  var lastShot = 0;
   // create layers
-layers['stars']   = new Layer();
-layers['players'] = new Layer();
-layers['widgets'] = new Layer();
+  layers['stars']   = new Layer();
+  layers['players'] = new Layer();
+  layers['widgets'] = new Layer();
 
-//initial zoom
-layers.players.lastZoom = 1;
 
 function ArcD(center, radius, angle) {
 	if(! center.x ){ // assume it as an array
@@ -28,38 +20,6 @@ function ArcD(center, radius, angle) {
 	var to = from.rotate(angle, center);
 	var arc = new Path.Arc(from, through, to);
 	return arc;
-}
-
-var bulletSymbol = function(position) {
-  var path = new Path.Circle(new Point(0, 0), 3);
-  path.style = {
-    fillColor: 'yellow',
-	storkeColor: 'black'
-  };
-  var symbol = new Symbol(path);
-  path.remove();
-  bulletSymbol = function(position) {
-    return symbol.place(position);
-  };
-  return bulletSymbol(position);
-};
-
-function Bullet(position) {
-  this.path = bulletSymbol(position);
-  this.x = position.x;
-  this.y = position.y;
-  this.update = function(delta) {
-    this.y -= delta * 8;
-	if (this.y < -4500) {
-		this.remove();
-	}
-    this.path.position.y = this.y;
-	this.path.position.x = this.x;
-  };
-  this.remove = function() {
-    this.path.remove();
-	this.removed = true;
-  };
 }
 
 function BloodWidget(position){
@@ -134,7 +94,8 @@ function ScoreWidget(position){
 }
 
 function stars(count){
-  layers['stars'].activate();
+
+  layers.stars.activate();
   // Create a symbol, which we will use to place instances of later:
   var path = new Path.Circle(new Point(0, 0), 3);
   path.style = {
@@ -153,6 +114,52 @@ function stars(count){
   }
 
 }
+
+var bloodWidget = new BloodWidget(new Point(775,35));
+var scoreWidget = new ScoreWidget(new Point(777,80));
+stars(60);
+
+  layers.players.activate();
+  var rect = new Path.Rectangle(new Point(-200, 500), new Point(1000, -4500));
+  layers.widgets.activate();
+  var overview = new Path.Rectangle(new Point(0, 0), new Point(120, 500));
+  overview.fillColor = '#162126';
+  overview.strokeColor = '#203040';
+  overview.opacity = 0.8;
+
+
+var bulletSymbol = function(position) {
+  var path = new Path.Circle(new Point(0, 0), 3);
+  path.style = {
+    fillColor: 'yellow',
+	storkeColor: 'black'
+  };
+  var symbol = new Symbol(path);
+  path.remove();
+  bulletSymbol = function(position) {
+    return symbol.place(position);
+  };
+  return bulletSymbol(position);
+};
+
+function Bullet(position) {
+  this.path = bulletSymbol(position);
+  this.x = position.x;
+  this.y = position.y;
+  this.update = function(delta) {
+    this.y -= delta * 8;
+	if (this.y < -4500) {
+		this.remove();
+	}
+    this.path.position.y = this.y;
+	this.path.position.x = this.x;
+  };
+  this.remove = function() {
+    this.path.remove();
+	this.removed = true;
+  };
+}
+
 /**
  * Creates a new Player
  **/
@@ -175,11 +182,12 @@ function Player(x,y){
   return jimbo;
 }
 
+
 function onFrame(event) {
   // move stars
-  var count = layers['stars'].children.length;
+  var count = layers.stars.children.length;
   for (var i = 0; i < count; i++) {
-    var item = layers['stars'].children[i];
+    var item = layers.stars.children[i];
     
     var vy = -1 * item.bounds.height;
     var vx = 0;
@@ -203,199 +211,154 @@ function onFrame(event) {
       item.position.y = -1 * vy;
     }
   }
-  //if(!players[myId]) return;
-  //zoom
 }
 
-var zoomUpdate = function(zoomTo,toContinue) {
-  var maxZoom = 10;
-  var minZoom = -10;
-  var initialZoom = 1;
-  var stepZoom = 1;
-  var scaleFactor = 1.08;
-  var currentZoom = layers['players'].lastZoom;
-  var scaleOrigin = players[myId].shape.position.clone();
-  
-  if(zoomTo && zoomTo !== currentZoom){
-    var zoom = zoomTo - currentZoom;
-    var scaleTo;
-    if(zoom < 0){
-      scaleTo = 1/(-1*zoom*scaleFactor);
-    }else{
-      scaleTo = zoom*scaleFactor;
-    }
-    currentZoom = zoomTo;
-    layers['players'].scale(scaleTo,scaleOrigin);
-    layers['players'].lastZoom = zoomTo;
-  }
-  
-  if(!toContinue) return;
-  
-  if(Key.isDown('down')){
-    if(currentZoom < maxZoom){
-      layers['players'].scale( scaleFactor ,scaleOrigin );
-      layers['players'].lastZoom = currentZoom + stepZoom;
-    }
-  }else if (Key.isDown('up')){
-    if(currentZoom > minZoom){
-      layers['players'].scale( 1 / scaleFactor,scaleOrigin );
-      layers['players'].lastZoom = currentZoom - stepZoom;
-    }
-  }else{
-    if(currentZoom > initialZoom){
-      layers['players'].scale(1/scaleFactor,scaleOrigin );
-      layers['players'].lastZoom = currentZoom - stepZoom;
-    }else if( currentZoom < initialZoom){
-      layers['players'].scale(scaleFactor,scaleOrigin );
-      layers['players'].lastZoom = currentZoom + stepZoom;
-    }
-  }
-};
-
-var keyTimer;
-
-var lastShot = 0;
-
-var checkKeys = function () {
-	var preventDefault = false;
-	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
-		if (Key.isDown(key)) {
-			preventDefault = true;
-			clearTimeout(keyTimer);
-			keyTimer = setTimeout(checkKeys, 50);
-			if (key == 'space') {
-				if (lastShot > Date.now() - 1000) {
-					return;
-				}
-				lastShot = Date.now();
-			}
-			socket.emit(key);
-		}
-	});
-	return !preventDefault;
-};
-
-function onKeyDown() {
-	if (myId != -1) {
-		return checkKeys();
-	}
+onKeyDown = function() {
+  return game.checkKeys();
 }
 
-socket.on('id',function(id){
-  //@FIXME what if user be disconnected for a moment? does socket.io understand
-  // this situation? if not, we should check if myId is -1 ;)
-  // and if it is not -1, we should emit disconnect manually and then set the
-  // newly created id.
+function Game(){
+
+  var game = this;
+
+  this.connect = function(nickname,callback){
+    var socket = game.socket = io.connect();
+
+    socket.on('connect',function(){
+
+      socket.emit('join',nickname);
+      socket.on('id',function(id){
+         game.initSocket(socket,id);
+
+      });
+
+      callback();
+    });
+  }
+  
+  this.checkKeys = function () {
+    var self = this;
+	  var preventDefault = false;
+	  if ( myId == -1 || !self.socket ) return true;
+	  ['up', 'down', 'left', 'right', 'space'].forEach(function(key){
+		  if (Key.isDown(key)) {
+			  preventDefault = true;
+			  clearTimeout(keyTimer);
+			  keyTimer = setTimeout(self.checkKeys, 50);
+			  if (key == 'space') {
+				  if (lastShot > Date.now() - 600) {
+					  return;
+				  }
+				  lastShot = Date.now();
+			  }
+			  self.socket.emit(key);
+		  }
+	  });
+	  return !preventDefault;
+  };
+}
+
+Game.prototype.initSocket = function(socket,id){
+  var self = this;
+
+  //creating myself
   myId = id;
+  players[myId] = {};
+  var shape = new Player([10, 10]);
 
-  //start rendering frames right after you recognized your self
-  var lastFrame = 0;
+  shape.fillColor = 'white';
+  shape.strokeColor = 'white';
+  players[myId].shape = shape;
   socket.on('frame', function(frame, p, objects) {
 
     //we want to operate on players and objects.
-    layers['players'].activate();
-  	if (players[myId]) {
-    	layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
- 	    //var originalZoom = layers.players.lastZoom;
-      //zoomUpdate(1);
-	  }
+    layers.players.activate();
+
+    layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
+ 	  //var originalZoom = layers.players.lastZoom;
+    //zoomUpdate(1);
     
     p.forEach(function(player) {
+
 		  if (!players[player.id]) {
 			  players[player.id] = {};
         var shape = new Player([player.x, player.y]);
-        if( player.id === myId){
-          shape.fillColor = 'white';
-          shape.strokeColor = 'white';
-        }
         players[player.id].shape = shape;
       }
       
       scoreWidget.push(player.score,player.id);
 
       players[player.id].shape.setPosition(player.x, player.y);
-	  for (key in player) {
-	      players[player.id][key] = player[key];
-	  }
+
+	    for (key in player) {
+	        players[player.id][key] = player[key];
+	    }
 
       bullets.forEach(function(bullet, id) {
 		    bullet.update(frame - lastFrame);
-			if (bullet.removed) {
-				delete bullets[id];
-			}
+			  if (bullet.removed) {
+				  delete bullets[id];
+			  }
       });
+
       if (player.fire) {
           bullets[player.fire] = new Bullet(players[player.id].shape.position);
       }
+
       lastFrame = frame;
 
     });
-	bloodWidget.setBlood(players[myId].blood);
+
+    //update widgets
     scoreWidget.flush();
+	  bloodWidget.setBlood(players[myId].blood);
+
+    //centerize view
     layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
-	  if (layers.overview) {
+
+	    if (layers.overview) {
 	  	layers.overview.remove();
 	  }
 	  layers.overview = layers.players.clone();
 	  layers.overview.activate();
+
 	  var viewport = new Path.Rectangle(view.bounds.intersect(layers.players.bounds));
 	  viewport.strokeColor = 'yellow';
 	  viewport.opacity = 0.3;
+	  	  view.draw();
 	  layers.overview.fitBounds(view.bounds);
 	  layers.overview.translate([-345, 0]);
-	
-	  //@FIXME zoom feature temporary disabled to be fixed later.
-//	  zoomUpdate(originalZoom);
-	  //zoomUpdate(originalZoom,true);
-  });
-
-  socket.on('leave', function(id) {
-    players[id].shape.remove();
-	  delete players[id];
   });
   
+  socket.on('remove-bullet', function(id) {
+    bullets[id].remove();
+	  delete bullets[id];
+  });
+  
+  socket.on('leave', function(id) {
+    players[id].shape.remove();
+    delete players[id];
+  });
+      
   socket.on('end',function(rank,score,time,topScores){
     socket.disconnect();
     players[myId].shape.remove();
     delete players[myId];
-    end(rank,score,time,topScores);
+    self.showEnd(rank,score,time,topScores);
+  });
+      
+  socket.on('gameover',function(){
+    //@TODO show gameover screen
   });
 
-  socket.on('gameover', function() {
-    
-  });
-
-  socket.on('remove-bullet', function(id) {
-    bullets[id].remove();
-	delete bullets[id];
-  });
-
-function welcome(){
-  $('#nickForm').bind('submit',function(){
-	  if (myId != -1) {
-		  return false; 
-	  }
-    var nickname = $('#nickname').val().trim();
-    if(nickname.match(/^\w+$/)){
-      var connect = setInterval(function(){
-        if(connected){
-          $('#modal').fadeOut('fast');
-          clearInterval(connect);
-          socket.emit('join',nickname);
-          $('.stuff').append($('#welcomeScreen'));
-        }
-      },100);
-    }else{
-      alert('Please use alphanumeric characters only');
-      $('#nickname').focus();
-    }
-    return false;
-  });
-  $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
 }
 
-function end(rank,score,time,topScores){
+Game.prototype.showGameover = function(){
+  //@TODO add game over screen
+}
 
+Game.prototype.showEnd = function(rank,score,time,topScores){
+  var self = this;
   var html = $('#endScreen').html();
   var nickname = $('#nickname').val().trim();
   var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
@@ -413,30 +376,43 @@ function end(rank,score,time,topScores){
   html = $(html);
   
   html.bind('submit',function(e){
-    var connect = setInterval(function(){
-      if(connected){
-          $('#modal').fadeOut('fast');
-          clearInterval(connect);
-          socket.emit('join',nickname);
-      }
-    },100);
+
+    self.connect(nickname,function(socket){
+      $('#modal').fadeOut('fast');
+    });
+    
     return false;
   });
   
   $('#modal .wrapper').html(html).parent().fadeIn();
+
 }
 
-stars(60);
+Game.prototype.showWelcome = function(){
+    var self = this;
 
-welcome();
+    $('#nickForm').bind('submit',function(e){
+      e.preventDefault();
+	    if (myId != -1) {
+		    return false; 
+	    }
 
-var bloodWidget = new BloodWidget(new Point(775,35));
-var scoreWidget = new ScoreWidget(new Point(777,80));
+      var nickname = $('#nickname').val().trim();
+      if(nickname.match(/^\w+$/)){
 
-layers.players.activate();
-new Path.Rectangle(new Point(-200, 500), new Point(1000, -4500));
-layers.widgets.activate();
-var overview = new Path.Rectangle(new Point(0, 0), new Point(120, 500));
-overview.fillColor = '#162126';
-overview.strokeColor = '#203040';
-overview.opacity = 0.8;
+        self.connect(nickname,function(){
+          $('#modal').fadeOut();
+        });
+
+      }else{
+        alert('Please use alphanumeric characters only');
+        $('#nickname').focus();
+      }
+      return false;
+    });
+
+  $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
+}
+
+var game = new Game();
+game.showWelcome();
