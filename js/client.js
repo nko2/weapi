@@ -1,4 +1,11 @@
 var socket = io.connect();
+
+var connected = false;
+var connect = function(){
+  connected = true;
+};
+socket.on('connect',connect);
+
 var players = {};
 var bullets = [];
 var layers = {};
@@ -61,7 +68,7 @@ function BloodWidget(position){
   var backPath = this.backPath = new Path.Circle(position,20);
 
   backPath.strokeColor = bgColor;
-  backPath.strokeWidth = thickness + 3;
+  backPath.strokeWidth = thickness + 4;
 
   this.setBlood = function(blood) {
     this.blood = blood;
@@ -71,8 +78,12 @@ function BloodWidget(position){
     layers['widgets'].activate();
     bloodPath = this.bloodPath = new ArcD(position, 20, (360 * blood / 100) - 0.001);
     bloodPath.strokeWidth = thickness;
-    bloodPath.strokeColor = color;
-    bloodPath.opacity = 1;
+    //bloodPath.strokeColor = color;
+    color = new HSLColor(blood,1,0.2);
+    this.backPath.strokeColor = color.toCssString();
+    color = new HSLColor(blood,1,0.5);
+    bloodPath.strokeColor = color.toCssString();
+    bloodPath.opacity = 0.7;
   }
   //blood is full when user starts!
   this.setBlood(100);
@@ -85,7 +96,7 @@ function ScoreWidget(position){
   this.score = 0;
   
   var scoreShape = this.scoreShape = new PointText(position);
-  scoreShape.content = '10000';
+  scoreShape.content = '-';
   scoreShape.characterStyle = {
     font: 'courier,sans-serif',
     fontSize: 10,
@@ -266,7 +277,6 @@ function onKeyDown() {
 }
 
 socket.on('id',function(id){
-
   //@FIXME what if user be disconnected for a moment? does socket.io understand
   // this situation? if not, we should check if myId is -1 ;)
   // and if it is not -1, we should emit disconnect manually and then set the
@@ -335,28 +345,74 @@ socket.on('id',function(id){
     players[id].shape.remove();
 	  delete players[id];
   });
+  
+  socket.on('end',function(rank,score,time,topScores){
+    socket.disconnect();
+    players[myId].shape.remove();
+    delete players[myId];
 
+    end(rank,score,time,topScores);
+  });
 });
 
 function welcome(){
   $('#nickForm').bind('submit',function(){
-	if (myId != -1) {
-		return false; 
-	}
+	  if (myId != -1) {
+		  return false; 
+	  }
     var nickname = $('#nickname').val().trim();
     if(nickname.match(/^\w+$/)){
-      socket.emit('join',nickname);
-      $('#modal').fadeOut('fast');
+      var connect = setInterval(function(){
+        if(connected){
+          $('#modal').fadeOut('fast');
+          clearInterval(connect);
+          socket.emit('join',nickname);
+          $('.stuff').append($('#welcomeScreen'));
+        }
+      },100);
     }else{
       alert('Please use alphanumeric characters only');
       $('#nickname').focus();
     }
     return false;
   });
-  $('#modal .wrapper').append($('#welcomeScreen')).parent().fadeIn();
+  $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
+}
+
+function end(rank,score,time,topScores){
+
+  var html = $('#endScreen').html();
+  var nickname = $('#nickname').val().trim();
+  var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
+  var scoreTable = '';
+  if(!topScores) topScores = [];
+  topScores.forEach(function(p,i){
+    scoreTable += scoresTemplate.replace('$rank$',i+1).replace('$name$',p.nickname).replace('$score$',p.score);
+  });
+  
+  html = html.replace('$nickname$',nickname);
+  html = html.replace('$rank$',rank);
+  html = html.replace('$score$',score);
+  html = html.replace('$time$',time);
+  html = html.replace('$topscores$',scoreTable);
+  html = $(html);
+  
+  html.bind('submit',function(e){
+    var connect = setInterval(function(){
+      if(connected){
+          $('#modal').fadeOut('fast');
+          clearInterval(connect);
+          socket.emit('join',nickname);
+      }
+    },100);
+    return false;
+  });
+  
+  $('#modal .wrapper').html(html).parent().fadeIn();
 }
 
 stars(60);
+
 welcome();
 
 var bloodWidget = new BloodWidget(new Point(775,35));
