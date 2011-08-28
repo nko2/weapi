@@ -97,7 +97,7 @@ function Player(x,y){
       jimbo.lineTo(-10,20);
       jimbo.lineTo(-10,13);
       jimbo.closePath();
-      jimbo.strokeColor = 'white';
+      jimbo.strokeColor = 'gray';
       jimbo.fillColor = 'gray';
       jimbo.setPosition(x,y);
 
@@ -222,6 +222,7 @@ socket.on('id',function(id){
         var shape = new Player([player.x, player.y]);
         if( player.id === myId){
           shape.fillColor = 'white';
+          shape.strokeColor = 'white';
         }
         players[player.id].shape = shape;
       }
@@ -247,7 +248,7 @@ socket.on('id',function(id){
 	}
 	layers.overview = layers.players.clone();
 	layers.overview.fitBounds(view.bounds);
-	layers.overview.translate([-334, 0]);
+	layers.overview.translate([-345, 0]);
 	
 	//@FIXME zoom feature temporary disabled to be fixed later.
 	//zoomUpdate();
@@ -283,8 +284,8 @@ welcome();
 
 var bloodWidget = new BloodWidget(new Point(775,35));
 layers.players.activate();
-new Path.Rectangle(new Point(-300, 500), new Point(1100, -4500));
+new Path.Rectangle(new Point(-200, 500), new Point(1000, -4500));
 layers.widgets.activate();
-var overview = new Path.Rectangle(new Point(0, 0), new Point(140, 500));
+var overview = new Path.Rectangle(new Point(0, 0), new Point(120, 500));
 overview.fillColor = '#162126';
 overview.strokeColor = '#203040';

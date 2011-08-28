@@ -82,6 +82,15 @@ var frameInterval = setInterval(function() {
 			}
 			player.vx += player.vx > 0 ? -1 : 1;
 		}
+
+		if (player.x < -200) {
+			player.x = -200;
+		} else if (player.x > 1000) {
+			player.x = 1000;
+		}
+		if (player.y < -4500) {
+			player.y = 500;
+		}
 	});
 
 	io.sockets.volatile.emit('frame', frame, players, objects);
