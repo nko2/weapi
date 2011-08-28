@@ -236,10 +236,67 @@ function Game(){
     });
   }
   
+  this.showWelcome = function(){
+      var self = this;
+
+      $('#nickForm').bind('submit',function(e){
+        e.preventDefault();
+	      if (myId != -1) {
+		      return false; 
+	      }
+
+        var nickname = $('#nickname').val().trim();
+        if(nickname.match(/^\w+$/)){
+
+          self.connect(nickname,function(){
+            $('#modal').fadeOut();
+          });
+
+        }else{
+          alert('Please use alphanumeric characters only');
+          $('#nickname').focus();
+        }
+        return false;
+      });
+
+    $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
+  }
+  
+  this.showEnd = function(rank,score,time,topScores){
+    var self = this;
+    var html = $('#endScreen').html();
+    var nickname = $('#nickname').val().trim();
+    var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
+    var scoreTable = '';
+    if(!topScores) topScores = [];
+    topScores.forEach(function(p,i){
+      scoreTable += scoresTemplate.replace('$rank$',i+1).replace('$name$',p.nickname).replace('$score$',p.score);
+    });
+    
+    html = html.replace('$nickname$',nickname);
+    html = html.replace('$rank$',rank);
+    html = html.replace('$score$',score);
+    html = html.replace('$time$',time);
+    html = html.replace('$topscores$',scoreTable);
+    html = $(html);
+    
+    html.bind('submit',function(e){
+
+      self.connect(nickname,function(socket){
+        $('#modal').fadeOut('fast');
+      });
+      
+      return false;
+    });
+    
+    $('#modal .wrapper').html(html).parent().fadeIn();
+
+  }
+  
   this.checkKeys = function () {
     var self = this;
 	  var preventDefault = false;
-	  if ( myId == -1 || !self.socket ) return true;
+	  if ( !players[myId] || !self.socket ) return true;
 	  ['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		  if (Key.isDown(key)) {
 			  preventDefault = true;
@@ -256,104 +313,101 @@ function Game(){
 	  });
 	  return !preventDefault;
   };
-}
+  
+  this.initSocket = function(socket,id){
+    var self = this;
 
-Game.prototype.initSocket = function(socket,id){
-  var self = this;
-
-  //creating myself
-  myId = id;
-  players[myId] = {};
-  var shape = new Player([10, 10]);
-
-  shape.fillColor = 'white';
-  shape.strokeColor = 'white';
-  players[myId].shape = shape;
-  socket.on('frame', function(frame, p, objects) {
-
-    //we want to operate on players and objects.
-    layers.players.activate();
-
-    layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
- 	  //var originalZoom = layers.players.lastZoom;
-    //zoomUpdate(1);
+    //creating myself
+    myId = id;
     
-    p.forEach(function(player) {
+    socket.on('frame', function(frame, p, objects) {
 
-		  if (!players[player.id]) {
-			  players[player.id] = {};
-        var shape = new Player([player.x, player.y]);
-        players[player.id].shape = shape;
+      //we want to operate on players and objects.
+      layers.players.activate();
+      if(players[myId]){
+        layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
       }
       
-      scoreWidget.push(player.score,player.id);
+      p.forEach(function(player) {
 
-      players[player.id].shape.setPosition(player.x, player.y);
+		    if (!players[player.id]) {
+			    players[player.id] = {};
+          var shape = new Player([player.x, player.y]);
+          if( player.id === myId){
+            shape.fillColor = 'white';
+            shape.strokeColor = 'white';
+          }
+          players[player.id].shape = shape;
+        }
+        
+        scoreWidget.push(player.score,player.id);
 
-	    for (key in player) {
-	        players[player.id][key] = player[key];
-	    }
+        players[player.id].shape.setPosition(player.x, player.y);
 
-      bullets.forEach(function(bullet, id) {
-		    bullet.update(frame - lastFrame);
-			  if (bullet.removed) {
-				  delete bullets[id];
-			  }
+	      for (key in player) {
+	          players[player.id][key] = player[key];
+	      }
+
+        bullets.forEach(function(bullet, id) {
+		      bullet.update(frame - lastFrame);
+			    if (bullet.removed) {
+				    delete bullets[id];
+			    }
+        });
+
+        if (player.fire) {
+            bullets[player.fire] = new Bullet(players[player.id].shape.position);
+        }
+
+        lastFrame = frame;
+
       });
 
-      if (player.fire) {
-          bullets[player.fire] = new Bullet(players[player.id].shape.position);
-      }
+      //update widgets
+      scoreWidget.flush();
+	    bloodWidget.setBlood(players[myId].blood);
 
-      lastFrame = frame;
+      //centerize view
+      layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
 
+	      if (layers.overview) {
+	    	layers.overview.remove();
+	    }
+	    layers.overview = layers.players.clone();
+	    layers.overview.activate();
+
+	    var viewport = new Path.Rectangle(view.bounds.intersect(layers.players.bounds));
+	    viewport.strokeColor = 'yellow';
+	    viewport.opacity = 0.3;	  	  
+	    layers.overview.fitBounds(view.bounds);
+	    layers.overview.translate([-345, 0]);
+    });
+    
+    socket.on('remove-bullet', function(id) {
+      bullets[id].remove();
+	    delete bullets[id];
+    });
+    
+    socket.on('leave', function(id) {
+      players[id].shape.remove();
+      delete players[id];
+    });
+        
+    socket.on('end',function(rank,score,time,topScores){
+      socket.disconnect();
+      players[myId].shape.remove();
+      delete players[myId];
+      self.showEnd(rank,score,time,topScores);
+    });
+        
+    socket.on('gameover',function(){
+      //@TODO show gameover screen
     });
 
-    //update widgets
-    scoreWidget.flush();
-	  bloodWidget.setBlood(players[myId].blood);
-
-    //centerize view
-    layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
-
-	    if (layers.overview) {
-	  	layers.overview.remove();
-	  }
-	  layers.overview = layers.players.clone();
-	  layers.overview.activate();
-
-	  var viewport = new Path.Rectangle(view.bounds.intersect(layers.players.bounds));
-	  viewport.strokeColor = 'yellow';
-	  viewport.opacity = 0.3;
-	  	  view.draw();
-	  layers.overview.fitBounds(view.bounds);
-	  layers.overview.translate([-345, 0]);
-  });
-  
-  socket.on('remove-bullet', function(id) {
-    bullets[id].remove();
-	  delete bullets[id];
-  });
-  
-  socket.on('leave', function(id) {
-    players[id].shape.remove();
-    delete players[id];
-  });
-      
-  socket.on('end',function(rank,score,time,topScores){
-    socket.disconnect();
-    players[myId].shape.remove();
-    delete players[myId];
-    self.showEnd(rank,score,time,topScores);
-  });
-      
-  socket.on('gameover',function(){
-    //@TODO show gameover screen
-  });
-
+  }
 }
 
-Game.prototype.showGameover = function(){
+/*Game.prototype.showGameover = function(){
   //@TODO add game over screen
 }
 
@@ -412,7 +466,7 @@ Game.prototype.showWelcome = function(){
     });
 
   $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
-}
+}*/
 
 var game = new Game();
 game.showWelcome();
