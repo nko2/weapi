@@ -340,8 +340,9 @@ socket.on('id',function(id){
   });
 
   socket.on('leave', function(id) {
+    if (!players[id]) return;
     players[id].shape.remove();
-	  delete players[id];
+    delete players[id];
   });
 
   socket.on('gameover', function() {
@@ -349,6 +350,7 @@ socket.on('id',function(id){
   });
 
   socket.on('remove-bullet', function(id) {
+    if (!bullets[id]) return;
     bullets[id].remove();
 	delete bullets[id];
   });

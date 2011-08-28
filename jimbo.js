@@ -34,6 +34,9 @@ var SPEED = 5;
 var fire = 0;
 
 var removePlayer = function(player) {
+	if (players.indexOf(player) == -1) {
+		return;
+	}
 	players.splice(players.indexOf(player), 1);
 	sockets[player.id].broadcast.emit('leave', player.id);
 	log('user left (' + sockets[player.id].id + '):' + player.nickname);
