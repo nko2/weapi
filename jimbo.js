@@ -18,7 +18,7 @@ app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000,function() {
 });
 
 io = io.listen(app);
-
+io.set('log level', 0);
 app.configure('production',function(){
   io.set('log level', 0);
   io.enable('browser client minification');
@@ -38,7 +38,9 @@ var removePlayer = function(player) {
 }
 
 io.sockets.on('connection', function(socket) {
+  console.log('user connected: '+socket.id);
 	socket.on('join', function(nickname) {
+    console.log('user joined('+socket.id+'):'+nickname);
 		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy: -3, fire: false,score:0};
 		sockets[player.id] = socket;
 		player.nickname = nickname;
