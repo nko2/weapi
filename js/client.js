@@ -214,7 +214,9 @@ function onFrame(event) {
 }
 
 onKeyDown = function() {
-  return game.checkKeys();
+	if (players[myId]) {
+    return game.checkKeys();
+  }
 }
 
 function Game(){
@@ -296,12 +298,13 @@ function Game(){
   this.checkKeys = function () {
     var self = this;
 	  var preventDefault = false;
-	  if ( !players[myId] || !self.socket ) return true;
 	  ['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		  if (Key.isDown(key)) {
 			  preventDefault = true;
-			  clearTimeout(keyTimer);
-			  keyTimer = setTimeout(self.checkKeys, 50);
+//			  clearTimeout(keyTimer);
+			  keyTimer = setTimeout(function(){
+			    self.checkKeys.call(self);
+			  }, 50);
 			  if (key == 'space') {
 				  if (lastShot > Date.now() - 600) {
 					  return;
