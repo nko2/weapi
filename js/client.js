@@ -270,7 +270,7 @@ function Game(){
   this.showEnd = function(title,rank,score,time,topScores){
     var self = this;
     var html = $('#endScreen').html();
-    var nickname = $('#nickname').val().trim();
+    var nickname = 'Pilot';//$('#nickname').val().trim();
     var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
     var scoreTable = '';
     if(!topScores) topScores = [];
