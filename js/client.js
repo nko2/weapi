@@ -277,6 +277,10 @@ socket.on('id',function(id){
 	  	layers.overview.remove();
 	  }
 	  layers.overview = layers.players.clone();
+	  layers.overview.activate();
+	  var viewport = new Path.Rectangle(view.bounds.intersect(layers.players.bounds));
+	  viewport.strokeColor = 'yellow';
+	  viewport.opacity = 0.3;
 	  layers.overview.fitBounds(view.bounds);
 	  layers.overview.translate([-345, 0]);
 	
