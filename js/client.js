@@ -20,16 +20,29 @@ function ArcD(center, radius, angle) {
 	return arc;
 }
 
-function Bullet(position) {
-  this.path = new Path.Circle(position, 3);
-  this.path.style = {
+var bulletSymbol = function(position) {
+  var path = new Path.Circle(new Point(0, 0), 3);
+  path.style = {
     fillColor: 'yellow',
 	storkeColor: 'black'
   };
+  var symbol = new Symbol(path);
+  path.remove();
+  bulletSymbol = function(position) {
+    return symbol.place(position);
+  };
+  return bulletSymbol(position);
+};
+
+function Bullet(position) {
+  this.path = bulletSymbol(position);
   this.x = position.x;
   this.y = position.y;
   this.update = function(delta) {
     this.y -= delta * 8;
+	if (this.y < -4500) {
+		this.path.remove();
+	}
     this.path.position.y = this.y;
 	this.path.position.x = this.x;
   };
