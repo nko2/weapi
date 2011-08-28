@@ -369,7 +369,7 @@ socket.on('id',function(id){
     bullets[id].remove();
 	delete bullets[id];
   });
-
+});
 function welcome(){
   $('#nickForm').bind('submit',function(){
 	  if (myId != -1) {
