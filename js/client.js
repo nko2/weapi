@@ -171,19 +171,24 @@ var zoomUpdate = function() {
 
 var keyTimer;
 
+var lastShot = 0;
+
 var checkKeys = function () {
 	var preventDefault = false;
-	['up', 'down', 'left', 'right'].forEach(function(key){
+	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
 		if (Key.isDown(key)) {
-			socket.emit(key);
+			preventDefault = true;
 			clearTimeout(keyTimer);
 			keyTimer = setTimeout(checkKeys, 50);
-			preventDefault = true;
+			if (key == 'space') {
+				if (lastShot > Date.now() - 1000) {
+					return;
+				}
+				lastShot = Date.now();
+			}
+			socket.emit(key);
 		}
 	});
-	if (Key.isDown('space')) {
-		preventDefault = true;
-	}
 	return !preventDefault;
 };
 
@@ -191,12 +196,6 @@ function onKeyDown() {
 	if (myId != -1) {
 		return checkKeys();
 	}
-}
-
-function onKeyUp(event) {
-  if (myId != -1 && event.key == 'space') {
-    socket.emit('fire');
-  }
 }
 
 socket.on('id',function(id){
