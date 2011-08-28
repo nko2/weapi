@@ -30,7 +30,7 @@ var removePlayer = function(player, socket) {
 
 io.sockets.on('connection', function(socket) {
 	socket.on('join', function(nickname) {
-		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy:-3};
+		var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy: -3, fire: false};
 		player.nickname = nickname;
 		players.push(player);
 		socket.emit('id', player.id);
@@ -53,7 +53,7 @@ io.sockets.on('connection', function(socket) {
 			//}
 		});
 		socket.on('fire', function() {
-			
+			player.fire = true;
 		});
 		socket.on('disconnect', function() {
 			removePlayer(player, socket);
@@ -61,15 +61,18 @@ io.sockets.on('connection', function(socket) {
 	});
 });
 
+var frame = 0;
+
 var frameInterval = setInterval(function() {
+	frame++;
 	players.forEach(function(player) {
 		if (Math.abs(player.vy) < SPEED) {
 			player.y += player.vy;
 		} else {
 			player.y += -SPEED;
 		}
-		if (player.vy < -3) {
-			player.vy += 1;
+		if (player.vy != -3) {
+			player.vy += player.vy > -3 ? -1 : 1;
 		}
 		if (player.vx) {
 			if (Math.abs(player.vx) < SPEED) {
@@ -81,5 +84,8 @@ var frameInterval = setInterval(function() {
 		}
 	});
 
-	io.sockets.volatile.emit('frame', players, objects);
+	io.sockets.volatile.emit('frame', frame, players, objects);
+	players.forEach(function(player) {
+		player.fire = false;
+	});
 }, 34);

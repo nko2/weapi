@@ -1,5 +1,6 @@
 var socket = io.connect();
 var players = {};
+var bullets = [];
 var layers = {};
 var myId = -1;
 
@@ -19,6 +20,21 @@ function ArcD(center, radius, angle) {
 	return arc;
 }
 
+function Bullet(position) {
+  this.path = new Path.Circle(position, 3);
+  this.path.style = {
+    fillColor: 'yellow',
+	storkeColor: 'black'
+  };
+  this.x = position.x;
+  this.y = position.y;
+  this.update = function(delta) {
+    this.y -= delta * 8;
+    this.path.position.y = this.y;
+	this.path.position.x = this.x;
+  };
+}
+
 function BloodWidget(position){
   layers['widgets'].activate();
   var thickness = 10;
@@ -36,6 +52,7 @@ function BloodWidget(position){
     if (this.bloodPath) {
       this.bloodPath.remove();
     }
+    layers['widgets'].activate();
     bloodPath = this.bloodPath = new ArcD(position, 20, (360 * blood / 100) - 0.001);
     bloodPath.strokeWidth = thickness;
     bloodPath.strokeColor = color;
@@ -51,7 +68,7 @@ function stars(count){
   var path = new Path.Circle(new Point(0, 0), 3);
   path.style = {
     fillColor: 'white',
-    strokeColor: 'black',
+    strokeColor: 'black'
   };
   path.opacity = 0.5;
   var symbol = new Symbol(path);
@@ -81,7 +98,7 @@ function Player(x,y){
       jimbo.lineTo(-10,13);
       jimbo.closePath();
       jimbo.strokeColor = 'black';
-      jimbo.fillColor = 'black';
+      jimbo.fillColor = 'gray';
       jimbo.setPosition(x,y);
 
   return jimbo;
@@ -153,27 +170,32 @@ function onFrame(event) {
 var keyTimer;
 
 var checkKeys = function () {
-	['up', 'down', 'left', 'right', 'space'].forEach(function(key){
+	var preventDefault = false;
+	['up', 'down', 'left', 'right'].forEach(function(key){
 		if (Key.isDown(key)) {
 			socket.emit(key);
 			clearTimeout(keyTimer);
 			keyTimer = setTimeout(checkKeys, 50);
+			preventDefault = true;
 		}
 	});
+	if (Key.isDown('space')) {
+		preventDefault = true;
+	}
+	return !preventDefault;
 };
 
 function onKeyDown() {
-	checkKeys();
+	if (myId != -1) {
+		return checkKeys();
+	}
 }
 
-function onKeyUp(e){
-  if(e.key == 'down'){
-    socket.emit('up');
+function onKeyUp(event) {
+  if (myId != -1 && event.key == 'space') {
+    socket.emit('fire');
   }
 }
-socket.on('players', function(players) {
-
-});
 
 socket.on('id',function(id){
 
@@ -185,7 +207,8 @@ socket.on('id',function(id){
 
   //start rendering frames right after you recognized your self
   var oldPosition;
-  socket.on('frame', function(p, objects) {
+  var lastFrame = 0;
+  socket.on('frame', function(frame, p, objects) {
   
     //we want to operate on players and objects.
     layers['players'].activate();
@@ -207,9 +230,23 @@ socket.on('id',function(id){
       players[player.id].y = player.y;
       players[player.id].vx = player.vx;
       players[player.id].vy = player.vy;
+
+      bullets.forEach(function(bullet) {
+		bullet.update(frame - lastFrame);
+      });
+      if (player.fire) {
+          bullets.push(new Bullet(players[player.id].shape.position));
+      }
+      lastFrame = frame;
+
     });
 
     layers['players'].translate( oldPosition - players[myId].shape.position);
+  });
+
+  socket.on('leave', function(id) {
+    players[id].shape.remove();
+	delete players[id];
   });
 
 });
