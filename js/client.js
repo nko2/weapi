@@ -65,6 +65,44 @@ function BloodWidget(position){
   this.setBlood(100);
 }
 
+function ScoreWidget(position){
+  layers['widgets'].activate();
+
+  this.scores = [];
+  this.score = 0;
+  
+  var scoreShape = this.scoreShape = new PointText(position);
+  scoreShape.content = '10000';
+  scoreShape.characterStyle = {
+    font: 'courier,sans-serif',
+    fontSize: 10,
+    fillColor: '#fff'
+  };
+  scoreShape.paragraphStyle.justification = 'center';
+  
+  this.setScore = function(score){
+    this.scoreShape.content = score;
+  }
+  
+  this.push = function(score){
+    this.scores.push(score);
+  }
+  
+  this.flush = function(){
+    var len = this.scores.length;
+    var howBig = 0;
+    for (var i = 0; i < len; i++){
+      if(this.score > this.scores[i]){
+        howBig += 1;
+      }
+    }
+    var color = (120 * howBig) / len;
+    color = new HSLColor(color,1,0.5);
+    this.scoreShape.fillColor = color.toCssString();
+  }
+  
+}
+
 function stars(count){
   layers['stars'].activate();
   // Create a symbol, which we will use to place instances of later:
@@ -229,8 +267,8 @@ socket.on('id',function(id){
     layers['players'].activate();
   	if (players[myId]) {
     	layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
- 	    var originalZoom = layers.players.lastZoom;
-      zoomUpdate(1);
+ 	    //var originalZoom = layers.players.lastZoom;
+      //zoomUpdate(1);
 	  }
     
     p.forEach(function(player) {
@@ -240,6 +278,9 @@ socket.on('id',function(id){
         if( player.id === myId){
           shape.fillColor = 'white';
           shape.strokeColor = 'white';
+          scoreWidget.setScore(player.score);
+        }else{
+          scoreWidget.push(player.score);
         }
         players[player.id].shape = shape;
       }
@@ -258,7 +299,7 @@ socket.on('id',function(id){
       lastFrame = frame;
 
     });
-
+    scoreWidget.flush();
     layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
 	  if (layers.overview) {
 	  	layers.overview.remove();
@@ -269,7 +310,7 @@ socket.on('id',function(id){
 	
 	  //@FIXME zoom feature temporary disabled to be fixed later.
 //	  zoomUpdate(originalZoom);
-	  zoomUpdate(originalZoom,true);
+	  //zoomUpdate(originalZoom,true);
   });
 
   socket.on('leave', function(id) {
@@ -301,6 +342,8 @@ stars(60);
 welcome();
 
 var bloodWidget = new BloodWidget(new Point(775,35));
+var scoreWidget = new ScoreWidget(new Point(777,80));
+
 layers.players.activate();
 new Path.Rectangle(new Point(-200, 500), new Point(1000, -4500));
 layers.widgets.activate();
