@@ -85,8 +85,10 @@ var frameInterval = setInterval(function() {
 
 		if (player.x < -200) {
 			player.x = -200;
+			player.vx = 0;
 		} else if (player.x > 1000) {
 			player.x = 1000;
+			player.vx = 0;
 		}
 		if (player.y < -4500) {
 			player.y = 500;

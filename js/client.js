@@ -9,6 +9,9 @@ layers['stars']   = new Layer();
 layers['players'] = new Layer();
 layers['widgets'] = new Layer();
 
+//initial zoom
+layers.players.lastZoom = 1;
+
 function ArcD(center, radius, angle) {
 	if(! center.x ){ // assume it as an array
 		center = new Point(center[0],center[1]);
@@ -117,8 +120,6 @@ function Player(x,y){
   return jimbo;
 }
 
-var lastZoom  = 1;
-
 function onFrame(event) {
   // move stars
   var count = layers['stars'].children.length;
@@ -147,40 +148,54 @@ function onFrame(event) {
       item.position.y = -1 * vy;
     }
   }
-//  if(!players[myId]) return;
+  //if(!players[myId]) return;
   //zoom
 }
 
-var zoomUpdate = function() {
-  var maxZoom = 20;
-  var minZoom = -20;
+var zoomUpdate = function(zoomTo,toContinue) {
+  var maxZoom = 10;
+  var minZoom = -10;
   var initialZoom = 1;
   var stepZoom = 1;
-  var scaleFactor = 1.02;
-  var currentZoom = lastZoom;
-  var position = players[myId].shape.position.clone();
-
+  var scaleFactor = 1.08;
+  var currentZoom = layers['players'].lastZoom;
+  var scaleOrigin = players[myId].shape.position.clone();
+  
+  if(zoomTo && zoomTo !== currentZoom){
+    var zoom = zoomTo - currentZoom;
+    var scaleTo;
+    if(zoom < 0){
+      scaleTo = 1/(-1*zoom*scaleFactor);
+    }else{
+      scaleTo = zoom*scaleFactor;
+    }
+    currentZoom = zoomTo;
+    layers['players'].scale(scaleTo,scaleOrigin);
+    layers['players'].lastZoom = zoomTo;
+  }
+  
+  if(!toContinue) return;
+  
   if(Key.isDown('down')){
     if(currentZoom < maxZoom){
-      layers['players'].scale( scaleFactor ,position);
-      lastZoom = currentZoom + stepZoom;
+      layers['players'].scale( scaleFactor ,scaleOrigin );
+      layers['players'].lastZoom = currentZoom + stepZoom;
     }
   }else if (Key.isDown('up')){
     if(currentZoom > minZoom){
-      layers['players'].scale( 1 / scaleFactor,position);
-      lastZoom = currentZoom - stepZoom;
+      layers['players'].scale( 1 / scaleFactor,scaleOrigin );
+      layers['players'].lastZoom = currentZoom - stepZoom;
     }
   }else{
     if(currentZoom > initialZoom){
-      layers['players'].scale(1/scaleFactor,position);
-      lastZoom = currentZoom - stepZoom;
+      layers['players'].scale(1/scaleFactor,scaleOrigin );
+      layers['players'].lastZoom = currentZoom - stepZoom;
     }else if( currentZoom < initialZoom){
-      layers['players'].scale(scaleFactor,position);
-      lastZoom = currentZoom + stepZoom;
+      layers['players'].scale(scaleFactor,scaleOrigin );
+      layers['players'].lastZoom = currentZoom + stepZoom;
     }
   }
 };
-
 
 var keyTimer;
 
@@ -222,12 +237,15 @@ socket.on('id',function(id){
   //start rendering frames right after you recognized your self
   var lastFrame = 0;
   socket.on('frame', function(frame, p, objects) {
-  
+
     //we want to operate on players and objects.
     layers['players'].activate();
-	if (players[myId]) {
+  	if (players[myId]) {
     	layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
-	}
+ 	    var originalZoom = layers.players.lastZoom;
+      zoomUpdate(1);
+	  }
+    
     p.forEach(function(player) {
 		  if (!players[player.id]) {
 			  players[player.id] = {};
@@ -245,7 +263,7 @@ socket.on('id',function(id){
       players[player.id].vy = player.vy;
 
       bullets.forEach(function(bullet) {
-		bullet.update(frame - lastFrame);
+		    bullet.update(frame - lastFrame);
       });
       if (player.fire) {
           bullets.push(new Bullet(players[player.id].shape.position));
@@ -255,20 +273,21 @@ socket.on('id',function(id){
     });
 
     layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
-	if (layers.overview) {
-		layers.overview.remove();
-	}
-	layers.overview = layers.players.clone();
-	layers.overview.fitBounds(view.bounds);
-	layers.overview.translate([-345, 0]);
+	  if (layers.overview) {
+	  	layers.overview.remove();
+	  }
+	  layers.overview = layers.players.clone();
+	  layers.overview.fitBounds(view.bounds);
+	  layers.overview.translate([-345, 0]);
 	
-	//@FIXME zoom feature temporary disabled to be fixed later.
-	//zoomUpdate();
+	  //@FIXME zoom feature temporary disabled to be fixed later.
+//	  zoomUpdate(originalZoom);
+	  zoomUpdate(originalZoom,true);
   });
 
   socket.on('leave', function(id) {
     players[id].shape.remove();
-	delete players[id];
+	  delete players[id];
   });
 
 });
@@ -301,3 +320,4 @@ layers.widgets.activate();
 var overview = new Path.Rectangle(new Point(0, 0), new Point(120, 500));
 overview.fillColor = '#162126';
 overview.strokeColor = '#203040';
+overview.opacity = 0.8;
