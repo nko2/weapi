@@ -100,9 +100,21 @@ var checkCollisions = function(item, radius, x, y) {
 	}
 };
 
+var winners = [];
+
+var getRank = function(player) {
+	var rank = 1;
+	while (winners.length >= rank && winners[rank - 1].score > player.score) {
+		rank++;
+	}
+	winners.splice(rank - 1, 0, {nickname: player.nickname, time: player.time, score: player.score});
+	return rank;
+};
+
 var endGame = function(player) {
 	var time = Math.round((Date.now() - player.id) / 1000);
-	sockets[player.id].emit('end', 0, player.score, time, []);
+	player.time = time;
+	sockets[player.id].emit('end', getRank(player), player.score, time, winners.slice(0, 10));
 	removePlayer(player);
 };
 
