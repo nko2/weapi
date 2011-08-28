@@ -51,10 +51,14 @@ function Bullet(position) {
   this.update = function(delta) {
     this.y -= delta * 8;
 	if (this.y < -4500) {
-		this.path.remove();
+		this.remove();
 	}
     this.path.position.y = this.y;
 	this.path.position.x = this.x;
+  };
+  this.remove = function() {
+    this.path.remove();
+	this.removed = true;
   };
 }
 
@@ -71,6 +75,7 @@ function BloodWidget(position){
   backPath.strokeWidth = thickness + 4;
 
   this.setBlood = function(blood) {
+    if (this.blood == blood) return;
     this.blood = blood;
     if (this.bloodPath) {
       this.bloodPath.remove();
@@ -309,20 +314,23 @@ socket.on('id',function(id){
       scoreWidget.push(player.score,player.id);
 
       players[player.id].shape.setPosition(player.x, player.y);
-      players[player.id].x = player.x;
-      players[player.id].y = player.y;
-      players[player.id].vx = player.vx;
-      players[player.id].vy = player.vy;
+	  for (key in player) {
+	      players[player.id][key] = player[key];
+	  }
 
-      bullets.forEach(function(bullet) {
+      bullets.forEach(function(bullet, id) {
 		    bullet.update(frame - lastFrame);
+			if (bullet.removed) {
+				delete bullets[id];
+			}
       });
       if (player.fire) {
-          bullets.push(new Bullet(players[player.id].shape.position));
+          bullets[player.fire] = new Bullet(players[player.id].shape.position);
       }
       lastFrame = frame;
 
     });
+	bloodWidget.setBlood(players[myId].blood);
     scoreWidget.flush();
     layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
 	  if (layers.overview) {
@@ -350,10 +358,17 @@ socket.on('id',function(id){
     socket.disconnect();
     players[myId].shape.remove();
     delete players[myId];
-
     end(rank,score,time,topScores);
   });
-});
+
+  socket.on('gameover', function() {
+    
+  });
+
+  socket.on('remove-bullet', function(id) {
+    bullets[id].remove();
+	delete bullets[id];
+  });
 
 function welcome(){
   $('#nickForm').bind('submit',function(){
