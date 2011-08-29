@@ -19,7 +19,7 @@ app.listen(process.env.NODE_ENV === 'production' ? 80 : 8000,function() {
 });
 
 io = io.listen(app);
-io.set('log level', 0);
+
 app.configure('production',function(){
   io.set('log level', 0);
   io.enable('browser client minification');
@@ -167,7 +167,7 @@ var frameInterval = setInterval(function() {
 			item.blood -= 10;
 			if (item.blood <= 0) {
 				removePlayer(item);
-				sockets[item.id].emit('gameover');
+				sockets[item.id].emit('gameover',[]);
 			}
 		}
 	};

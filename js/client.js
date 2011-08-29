@@ -267,21 +267,50 @@ function Game(){
     $('#modal .wrapper').html($('#welcomeScreen')).parent().fadeIn();
   }
   
-  this.showEnd = function(title,rank,score,time,topScores){
+  this.showEnd = function(rank,score,time,topScores){
     var self = this;
     var html = $('#endScreen').html();
-    var nickname = 'Pilot';//$('#nickname').val().trim();
+    var nickname = $('#nickname').val().trim();
     var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
     var scoreTable = '';
     if(!topScores) topScores = [];
     topScores.forEach(function(p,i){
       scoreTable += scoresTemplate.replace('$rank$',i+1).replace('$name$',p.nickname).replace('$score$',p.score);
     });
-    html = html.replace('$title$',title);
+
     html = html.replace('$nickname$',nickname);
     html = html.replace('$rank$',rank);
     html = html.replace('$score$',score);
     html = html.replace('$time$',time);
+    html = html.replace('$topscores$',scoreTable);
+    html = $(html);
+    
+    /*html.bind('submit',function(e){
+      e.preventDefault();
+      $('#modal .wrapper').html($('#waitingScreen')).parent().fadeIn();
+      self.reconnect(nickname,function(){
+        $('#modal').fadeOut();
+      });
+
+      return false;
+    });*/
+    
+    $('#modal .wrapper').html(html).parent().fadeIn();
+
+  }
+  
+  this.showGameover = function(topScores){
+    var self = this;
+    var html = $('#gameoverScreen').html();
+    var nickname = $('#nickname').val().trim();
+    var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
+    var scoreTable = '';
+    if(!topScores) topScores = [];
+    topScores.forEach(function(p,i){
+      scoreTable += scoresTemplate.replace('$rank$',i+1).replace('$name$',p.nickname).replace('$score$',p.score);
+    });
+
+    html = html.replace('$nickname$',nickname);
     html = html.replace('$topscores$',scoreTable);
     html = $(html);
     
@@ -406,7 +435,7 @@ function Game(){
       delete players[myId];
       myId = -1;
 
-      self.showEnd('Mission Complete',rank,score,time,topScores);
+      self.showEnd(rank,score,time,topScores);
     });
         
     socket.on('gameover',function(rank,score,time,topScores){
@@ -414,7 +443,7 @@ function Game(){
       players[myId].shape.remove();
       delete players[myId];
       myId = -1;
-      self.showEnd('You loosed!',rank,score,time,topScores);
+      self.showGameover(rank,score,time,topScores);
     });
 
   }

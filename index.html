@@ -35,13 +35,15 @@
       <br/>
       <br/>
       <h2>How to play</h2>
-      <p>Avoid...</p>
+      <p>Use Up,Down,Left,Right arrows to move your jimbo, SPACE to fire!</p>
+      <p>Gain more scores by attacking other players.</p>
+      <p>Reach the end with as much scores as you can!</p>
       <center><input class="startBtn" type="submit" value="Start!"/></center>
       </form>
   </div>
   <div id="endScreen">
     <form id="endForm">
-      <h2>$title$</h2>
+      <h2>Mission Complete</h2>
       <h3>$nickname$,</h3>
       <p>You successfully completed the mission.</p>
       <h3>Achivments</h3>
@@ -72,6 +74,27 @@
         $topscores$
       <p>Are you ready for another mission?</p>
       <center><input class="startBtn" type="submit" value="Let's Go" autofocus/></center>
+    </form>
+  </div>
+  <div id="gameoverScreen">
+    <form id="endForm">
+      <h2>Gameover</h2>
+      <h3>$nickname$,</h3>
+      <p>You faild to complete the mission.</p>
+      <h3>Top Scores</h3>
+        <div class="scoreCol index">
+          <div class="title">Rank</div>
+        </div>
+        <div class="scoreCol">
+          <div class="title">Aeronaut</div>
+        </div>
+        <div class="scoreCol">
+          <div class="title">Score</div>
+        </div>
+        <div class="clearfix"></div>
+        $topscores$
+      <p>Are you ready for another mission?</p>
+      <center><input class="startBtn" type="submit" value="Yes" autofocus/></center>
     </form>
   </div>
 </div>
