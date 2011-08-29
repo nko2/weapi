@@ -69,6 +69,13 @@ io.sockets.on('connection', function(socket) {
 		socket.on('disconnect', function() {
 			removePlayer(player);
 		});
+		socket.on('reconnect',function(){
+		  removePlayer(player);
+		  var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy: -3, fire: false,score:0};
+		  sockets[player.id] = socket;
+		  player.nickname = nickname;
+		  players.push(player);
+		});
 	});
 });
 
