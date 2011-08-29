@@ -222,11 +222,15 @@ onKeyDown = function() {
 function Game(){
 
   var game = this;
-
+  this.nickname = 'Anonymous';
+  
   this.connect = function(nickname,callback){
-    var socket = game.socket = io.connect();
+    
+    //save nickname for later use
+    this.nickname = nickname;
+     
+    var socket = game.socket = io.connect(null,{'force new connection':true});
     socket.on('connect',function(){
-
       socket.emit('join',nickname);
       socket.on('id',function(id){
          game.initSocket(socket,id);
@@ -234,11 +238,6 @@ function Game(){
 
       callback();
     });
-  }
-  
-  this.reconnect = function(nickname,callback){
-    socket.emit('reconnect',nickname);
-    callback();
   }
   
   this.showWelcome = function(){
@@ -270,7 +269,7 @@ function Game(){
   this.showEnd = function(rank,score,time,topScores){
     var self = this;
     var html = $('#endScreen').html();
-    var nickname = $('#nickname').val().trim();
+    var nickname = this.nickname;
     var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
     var scoreTable = '';
     if(!topScores) topScores = [];
@@ -285,15 +284,15 @@ function Game(){
     html = html.replace('$topscores$',scoreTable);
     html = $(html);
     
-    /*html.bind('submit',function(e){
+    html.bind('submit',function(e){
       e.preventDefault();
       $('#modal .wrapper').html($('#waitingScreen')).parent().fadeIn();
-      self.reconnect(nickname,function(){
+      self.connect(nickname,function(){
         $('#modal').fadeOut();
       });
 
       return false;
-    });*/
+    });
     
     $('#modal .wrapper').html(html).parent().fadeIn();
 
@@ -302,7 +301,7 @@ function Game(){
   this.showGameover = function(topScores){
     var self = this;
     var html = $('#gameoverScreen').html();
-    var nickname = $('#nickname').val().trim();
+    var nickname = this.nickname;
     var scoresTemplate = '<div class="scoreCol index">$rank$</div><div class="scoreCol">$name$</div><div class="scoreCol">$score$</div><div class="clearfix"></div>';
     var scoreTable = '';
     if(!topScores) topScores = [];
@@ -314,15 +313,15 @@ function Game(){
     html = html.replace('$topscores$',scoreTable);
     html = $(html);
     
-    /*html.bind('submit',function(e){
+    html.bind('submit',function(e){
       e.preventDefault();
       $('#modal .wrapper').html($('#waitingScreen')).parent().fadeIn();
-      self.reconnect(nickname,function(){
+      self.connect(nickname,function(){
         $('#modal').fadeOut();
       });
 
       return false;
-    });*/
+    });
     
     $('#modal .wrapper').html(html).parent().fadeIn();
 
