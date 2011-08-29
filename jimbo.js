@@ -34,6 +34,9 @@ var SPEED = 5;
 var fire = 0;
 
 var removePlayer = function(player) {
+	if (players.indexOf(player) == -1) {
+		return;
+	}
 	players.splice(players.indexOf(player), 1);
 	sockets[player.id].broadcast.emit('leave', player.id);
 	log('user left (' + sockets[player.id].id + '):' + player.nickname);
@@ -66,6 +69,13 @@ io.sockets.on('connection', function(socket) {
 		socket.on('disconnect', function() {
 			removePlayer(player);
 		});
+		socket.on('reconnect',function(){
+		  removePlayer(player);
+		  var	player = {id: Date.now() + Math.random(), x:405 , y:250, blood: 100, vx: 0, vy: -3, fire: false,score:0};
+		  sockets[player.id] = socket;
+		  player.nickname = nickname;
+		  players.push(player);
+		});
 	});
 });
 
@@ -97,9 +107,21 @@ var checkCollisions = function(item, radius, x, y) {
 	}
 };
 
+var winners = [];
+
+var getRank = function(player) {
+	var rank = 1;
+	while (winners.length >= rank && winners[rank - 1].score > player.score) {
+		rank++;
+	}
+	winners.splice(rank - 1, 0, {nickname: player.nickname, time: player.time, score: player.score});
+	return rank;
+};
+
 var endGame = function(player) {
 	var time = Math.round((Date.now() - player.id) / 1000);
-	sockets[player.id].emit('end', 0, player.score, time, []);
+	player.time = time;
+	sockets[player.id].emit('end', getRank(player), player.score, time, winners.slice(0, 10));
 	removePlayer(player);
 };
 
