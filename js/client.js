@@ -91,6 +91,10 @@ function ScoreWidget(position){
     this.scoreShape.fillColor = color.toCssString();
   }
   
+  this.reset = function(){
+    this.scores = [10];
+    this.score = 0;
+  }
 }
 
 function stars(count){
@@ -119,13 +123,15 @@ var bloodWidget = new BloodWidget(new Point(775,35));
 var scoreWidget = new ScoreWidget(new Point(777,80));
 stars(60);
 
-  layers.players.activate();
-  var rect = new Path.Rectangle(new Point(-200, 500), new Point(1000, -4500));
-  layers.widgets.activate();
-  var overview = new Path.Rectangle(new Point(0, 0), new Point(120, 500));
-  overview.fillColor = '#162126';
-  overview.strokeColor = '#203040';
-  overview.opacity = 0.8;
+layers.players.activate();
+
+var rect = new Path.Rectangle(new Point(-200, 500), new Point(1000, -4500));
+layers.widgets.activate();
+
+var overview = new Path.Rectangle(new Point(0, 0), new Point(120, 500));
+overview.fillColor = '#162126';
+overview.strokeColor = '#203040';
+overview.opacity = 0.8;
 
 
 var bulletSymbol = function(position) {
@@ -228,9 +234,23 @@ function Game(){
     
     //save nickname for later use
     this.nickname = nickname;
-     
     var socket = game.socket = io.connect(null,{'force new connection':true});
     socket.on('connect',function(){
+
+      bloodWidget.setBlood(100);
+      scoreWidget.reset();
+      
+      delete players;
+      delete bullets;
+
+      players = {};
+      bullets = [];
+
+      myId = -1;
+      lastFrame = 0;
+      clearInterval(keyTimer);
+      lastShot = 0;
+
       socket.emit('join',nickname);
       socket.on('id',function(id){
          game.initSocket(socket,id);
@@ -405,7 +425,7 @@ function Game(){
       //centerize view
       layers.players.translate([-players[myId].x + 405, -players[myId].y + 250]);
 
-	      if (layers.overview) {
+	    if (layers.overview) {
 	    	layers.overview.remove();
 	    }
 	    layers.overview = layers.players.clone();
