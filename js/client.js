@@ -450,6 +450,7 @@ function Game(){
         
     socket.on('end',function(rank,score,time,topScores){
       socket.disconnect();
+      layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
       players[myId].shape.remove();
       delete players[myId];
       myId = -1;
