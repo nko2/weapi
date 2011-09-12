@@ -239,14 +239,13 @@ function Game(){
 
       bloodWidget.setBlood(100);
       scoreWidget.reset();
-      
-      delete players;
-      delete bullets;
+
+      layers.players.removeChildren(1);
 
       players = {};
       bullets = [];
-
       myId = -1;
+
       lastFrame = 0;
       clearInterval(keyTimer);
       lastShot = 0;
@@ -450,9 +449,8 @@ function Game(){
         
     socket.on('end',function(rank,score,time,topScores){
       socket.disconnect();
-      players[myId].shape.remove();
-      delete players[myId];
-      myId = -1;
+
+      layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
 
       self.showEnd(rank,score,time,topScores);
     });
