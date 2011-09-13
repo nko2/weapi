@@ -449,8 +449,15 @@ function Game(){
         
     socket.on('end',function(rank,score,time,topScores){
       socket.disconnect();
+<<<<<<< HEAD
 
       layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
+=======
+      layers.players.translate([players[myId].x - 405, players[myId].y - 250]);
+      players[myId].shape.remove();
+      delete players[myId];
+      myId = -1;
+>>>>>>> c28be1057c5a490449acd9c54462dd15dad1712f
 
       self.showEnd(rank,score,time,topScores);
     });
